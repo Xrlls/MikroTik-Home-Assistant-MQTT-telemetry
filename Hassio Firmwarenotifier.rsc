@@ -1,12 +1,12 @@
 {
-    :local discovery_path "homeassistant/"
-    :local domain_path "update/"
+    global discoverypath "homeassistant/"
+    global domainpath "update/"
 
     #-------------------------------------------------------
     #Get variables to build device string
     #-------------------------------------------------------
     #ID
-    local ID [/system/routerboard get serial-number] 
+    global ID [/system/routerboard get serial-number] 
     #Name
     local Name [/system/identity/get name]
     #Model
@@ -14,7 +14,7 @@
     #SW
     local CSW   [/system/package/get routeros version] 
     #Manufacturer
-    local Manu [/system/resource/get platform] 
+    global Manu [/system/resource/get platform] 
 
     #Get local IP address from bridge interface, and truncate prefix length
     local ipaddress [/ip/address/get [find interface="bridge"] address ]
@@ -29,62 +29,62 @@
     #-------------------------------------------------------
     #Build device string
     #-------------------------------------------------------
-    local dev "\"dev\":{\
+    global dev "\"dev\":{\
         \"ids\":[\"$ID\"],\
         \"name\":\"$Name\",\
         \"mdl\":\"$Model\",\
         \"sw\":\"$CSW\",\
         \"mf\":\"$Manu\"$url}"
 
+    global buildconfig do= {
+        global discoverypath
+        global domainpath
+        global ID
+        global dev
+
+        #build config for Hassio
+        local config "{\"~\":\"$discoverypath$domainpath$ID/$name\",\
+            \"name\":\"$name\",\
+            \"stat_t\":\"~/state\",\
+            \"uniq_id\":\"$ID_$name\",\
+            \"obj_id\":\"$ID_$name\",\
+            $dev\
+        }"
+        /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config"               
+    }
+    global poststate do= {
+        global discoverypath
+        global domainpath
+        global ID
+        #post Routerboard firmware
+        local state "{\"installed_version\":\"$cur\",\
+            \"latest_version\":\"$new\"}"
+        /iot/mqtt/publish broker="Home Assistant" message=$state topic="$discoverypath$domainpath$ID/$name/state"
+    }
     #-------------------------------------------------------
     #Handle routerboard firmware for non CHR
     #-------------------------------------------------------
     if ([/system/resource/get board-name] != "CHR") do={
-
-        #build config for Hassio
-        local config "{\"~\":\"homeassistant/update/$ID/routerboard\",\
-            \"name\":\"RouterBOARD\",\
-            \"stat_t\":\"~/state\",\
-            \"uniq_id\":\"$ID_routerboard\",\
-            \"obj_id\":\"$ID_routerboard\",\
-            $dev\
-            }"
-
-        /iot/mqtt/publish broker="Home Assistant" message=$config topic="homeassistant/update/$ID/routerboard/config"
+        $buildconfig name="RouterBOARD"
 
         #Get routerboard firmware
         local cur [/system/routerboard/ get current-firmware]
         local new [/system/routerboard/ get upgrade-firmware]
 
         #post Routerboard firmware
-        local state "{\"installed_version\":\"$cur\",\
-            \"latest_version\":\"$new\"}"
-
-        /iot/mqtt/publish broker="Home Assistant" message=$state topic="homeassistant/update/$ID/routerboard/state"
-
+        $poststate name="RouterBOARD" cur=$cur new=$new
     }
 
     #-------------------------------------------------------
-    #HAndle RouterOS
+    #Handle RouterOS
     #-------------------------------------------------------
-    #build config for Hassio
-    local config "{\"~\":\"homeassistant/update/$ID/routerOS\",\
-        \"name\":\"RouterOS\",\
-        \"stat_t\":\"~/state\",\
-        \"uniq_id\":\"$ID_routerOS\",\
-        \"obj_id\":\"$ID_routerOS\",\
-        $dev\
-        }"
-    /iot/mqtt/publish broker="Home Assistant" message=$config topic="homeassistant/update/$ID/routerOS/config"
+    $buildconfig name="RouterOS"
 
     #Get system software
     local cur [ /system/package/update/ get installed-version ]
     local new [ /system/package/update/ get latest-version ]
 
-    local state "{\"installed_version\":\"$cur\",\
-    \"latest_version\":\"$new\"}"
-
-    /iot/mqtt/publish broker="Home Assistant" message=$state topic="homeassistant/update/$ID/routerOS/state"
+    $poststate name="RouterOS" cur=$cur new=$new
 
     #-------------------------------------------------------
     #Handle LTE interfaces
@@ -103,7 +103,7 @@
                 ([:find ($lte->"model") "\"" -1] +1)\
                 [:find ($lte->"model") "\"" [:find ($lte->"model") "\"" -1]]]
 
-            local config "{\"~\":\"homeassistant/update/$ID/$ifacename\",\
+            local config "{\"~\":\"$discoverypath$domainpath$ID/$ifacename\",\
                 \"name\":\"$modemname\",\
                 \"stat_t\":\"~/state\",\
                 \"uniq_id\":\"$ID_$ifacename\",\
@@ -111,18 +111,14 @@
                 $dev\
                 }"
 
-            /iot/mqtt/publish broker="Home Assistant" message=$config topic="homeassistant/update/$ID/$ifacename/config"
+            /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$ifacename/config"
         
             #Get firmware version for LTE interface
             local Firmware [/interface/lte firmware-upgrade [/interface/lte get $iface name] once as-value ]
             local cur ($Firmware->"installed")
             local new ($Firmware->"latest")
 
-            local state "{\
-                \"installed_version\":\"$cur\",\
-                \"latest_version\":\"$new\"}"
-
-            /iot/mqtt/publish broker="Home Assistant" message=$state topic="homeassistant/update/$ID/$ifacename/state"
+            $poststate name=$ifacename cur=$cur new=$new
             }
         }
     }
