@@ -20,5 +20,16 @@ I will happily test on any other devices you might want to gift me :)
 ## Installation
 
 ### MQTT setup
+#### Home Assistant
+
+### RouterOS
+The IOT packages needs to be installed. The installation is not covered in this guide.
+
+When the package is installed, a connection needs to be configured to Home Assistant.
+  /iot mqtt brokers
+  add address=\<MQTT server IP\> auto-connect=yes name="Home Assistant" password=\<password\> username=\<username\>
+The scripts currently depends on the name of the broker being <Home Assistant>. <auto-connect> is set to <yes> as the scripts do not handle setting up the initial connection themselves.
+
+
 
 ### Script Installation
