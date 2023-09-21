@@ -17,15 +17,21 @@
     global Manu [/system/resource/get platform] 
 
     #Get local IP address from bridge interface, and truncate prefix length
-    local ipaddress [/ip/address/get [find interface="bridge"] address ]
+    local ipaddress [/ip/address/get [find interface=[/interface/bridge/get [/interface/bridge/find] name]] address ]
     :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
+    local urldomain [/ip/dns/static/ get [/ip/dns/static/ find address=$ipaddress name] name  ]
+    if (urldomain != null) do={
+        put "URL found"
+        set ipaddress $urldomain
+        }
 
-    local url
-    :if (! [/ip/service/get www-ssl disabled ]) \
-        do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
-    else={if (! [/ip/service/get www disabled]) \
-        do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
-
+    if (ipaddress != null) do={
+        local url
+        :if (! [/ip/service/get www-ssl disabled ]) \
+            do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
+        else={if (! [/ip/service/get www disabled]) \
+            do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
+        }
     #-------------------------------------------------------
     #Build device string
     #-------------------------------------------------------
