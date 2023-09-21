@@ -25,8 +25,8 @@
         set ipaddress $urldomain
         }
 
+    local url
     if (ipaddress != null) do={
-        local url
         :if (! [/ip/service/get www-ssl disabled ]) \
             do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
         else={if (! [/ip/service/get www disabled]) \
@@ -76,6 +76,10 @@
         #Get routerboard firmware
         local cur [/system/routerboard/ get current-firmware]
         local new [/system/routerboard/ get upgrade-firmware]
+        #Get release note:
+        /tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG"
+        global test [/file/get "CHANGELOG" contents]
+        :put [$test]
 
         #post Routerboard firmware
         $poststate name="RouterBOARD" cur=$cur new=$new
@@ -95,8 +99,6 @@
     #-------------------------------------------------------
     #Handle LTE interfaces
     #-------------------------------------------------------
-    #Count nummer of LTE interfaces
-
     :foreach iface in=[/interface/lte/ find] do={
     local ifacename [/interface/lte get $iface name]
 
@@ -108,7 +110,6 @@
             local modemname [:pick ($lte->"model")\
                 ([:find ($lte->"model") "\"" -1] +1)\
                 [:find ($lte->"model") "\"" [:find ($lte->"model") "\"" -1]]]
-
             $buildconfig name=$modemname
     
             #Get firmware version for LTE interface
