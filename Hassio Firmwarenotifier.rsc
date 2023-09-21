@@ -103,22 +103,14 @@
                 ([:find ($lte->"model") "\"" -1] +1)\
                 [:find ($lte->"model") "\"" [:find ($lte->"model") "\"" -1]]]
 
-            local config "{\"~\":\"$discoverypath$domainpath$ID/$ifacename\",\
-                \"name\":\"$modemname\",\
-                \"stat_t\":\"~/state\",\
-                \"uniq_id\":\"$ID_$ifacename\",\
-                \"obj_id\":\"$ID_$ifacename\",\
-                $dev\
-                }"
-
-            /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$ifacename/config"
-        
+            $buildconfig name=$modemname
+    
             #Get firmware version for LTE interface
             local Firmware [/interface/lte firmware-upgrade [/interface/lte get $iface name] once as-value ]
             local cur ($Firmware->"installed")
             local new ($Firmware->"latest")
 
-            $poststate name=$ifacename cur=$cur new=$new
+            $poststate name=$modemname cur=$cur new=$new
             }
         }
     }
