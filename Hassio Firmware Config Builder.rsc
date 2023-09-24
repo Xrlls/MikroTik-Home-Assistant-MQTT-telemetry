@@ -5,43 +5,36 @@
     #-------------------------------------------------------
     #Get variables to build device string
     #-------------------------------------------------------
-    #ID
-    global ID [/system/routerboard get serial-number] 
-    #Name
-    local Name [/system/identity/get name]
-    #Model
-    local Model [system/resource/get board-name] 
-    #SW
-    local CSW   [/system/resource/get version ] 
-    #Manufacturer
-    global Manu [/system/resource/get platform] 
+    global ID [/system/routerboard get serial-number];#ID
+    { 
+        local Name [/system/identity/get name];       #Name
+        local Model [system/resource/get board-name]; #Mode
+        local CSW   [/system/resource/get version ];  #SW
+        local Manu [/system/resource/get platform];   #Manufacturer
 
-    #Get local IP address from bridge interface, and truncate prefix length
-    local ipaddress [/ip/address/get [find interface=[/interface/bridge/get [/interface/bridge/find] name]] address ]
-    :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
-    local urldomain [/ip/dns/static/ get [/ip/dns/static/ find address=$ipaddress name] name  ]
-    if (urldomain != nill) do={
-        put "URL found"
-        set ipaddress $urldomain
-        }
+        #Get local IP address from bridge interface, and truncate prefix length
+        local ipaddress [/ip/address/get [find interface=[/interface/bridge/get [/interface/bridge/find] name]] address ]
+        :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
+        local urldomain [/ip/dns/static/ get [/ip/dns/static/ find address=$ipaddress name] name  ]
+        if ([:typeof (urldomain)] != "nill") do={set ipaddress $urldomain}
 
-    local url
-    if (ipaddress != null) do={
-        :if (! [/ip/service/get www-ssl disabled ]) \
-            do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
-        else={if (! [/ip/service/get www disabled]) \
-            do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
-        }
-    #-------------------------------------------------------
-    #Build device string
-    #-------------------------------------------------------
-    global dev "\"dev\":{\
-        \"ids\":[\"$ID\"],\
-        \"name\":\"$Name\",\
-        \"mdl\":\"$Model\",\
-        \"sw\":\"$CSW\",\
-        \"mf\":\"$Manu\"$url}"
-
+        local url
+        if ([:typeof (ipaddress)] != "nill") do={
+            :if (! [/ip/service/get www-ssl disabled ]) \
+                do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
+            else={if (! [/ip/service/get www disabled]) \
+                do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
+            }
+        #-------------------------------------------------------
+        #Build device string
+        #-------------------------------------------------------
+        global dev "\"dev\":{\
+            \"ids\":[\"$ID\"],\
+            \"name\":\"$Name\",\
+            \"mdl\":\"$Model\",\
+            \"sw\":\"$CSW\",\
+            \"mf\":\"$Manu\"$url}"
+    }
     global buildconfig do= {
         global discoverypath
         global domainpath
@@ -56,7 +49,7 @@
             \"obj_id\":\"$ID_$name\",\
             $dev\
         }"
-        /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config"               
+        /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
     }
     #-------------------------------------------------------
     #Handle routerboard firmware for non CHR
