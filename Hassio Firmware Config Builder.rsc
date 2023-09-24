@@ -12,7 +12,7 @@
     #Model
     local Model [system/resource/get board-name] 
     #SW
-    local CSW   [/system/package/get routeros version] 
+    local CSW   [/system/resource/get version ] 
     #Manufacturer
     global Manu [/system/resource/get platform] 
 
@@ -20,13 +20,13 @@
     local ipaddress [/ip/address/get [find interface=[/interface/bridge/get [/interface/bridge/find] name]] address ]
     :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
     local urldomain [/ip/dns/static/ get [/ip/dns/static/ find address=$ipaddress name] name  ]
-    if (urldomain != null) do={
+    if (urldomain != nill) do={
         put "URL found"
         set ipaddress $urldomain
         }
 
+    local url
     if (ipaddress != null) do={
-        local url
         :if (! [/ip/service/get www-ssl disabled ]) \
             do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
         else={if (! [/ip/service/get www disabled]) \
@@ -58,7 +58,6 @@
         }"
         /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config"               
     }
-
     #-------------------------------------------------------
     #Handle routerboard firmware for non CHR
     #-------------------------------------------------------
@@ -74,8 +73,6 @@
     #-------------------------------------------------------
     #Handle LTE interfaces
     #-------------------------------------------------------
-    #Count nummer of LTE interfaces
-
     :foreach iface in=[/interface/lte/ find] do={
     local ifacename [/interface/lte get $iface name]
 
