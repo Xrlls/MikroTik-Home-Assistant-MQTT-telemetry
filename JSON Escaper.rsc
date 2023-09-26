@@ -1,3 +1,22 @@
+global SearchReplace do= {
+    :local out ""
+    :local index -1
+    :local length [:len $input]
+    :local findex
+    :local temp
+    set $findex [find $input $search $index ]
+    while ([len $findex] != "0") do={
+        set temp ([pick $input $index $findex ])
+        set $out "$out$temp$replace"
+        set $index ($findex+[len $search])
+        set $findex [find $input $search $index ]
+    }
+    set temp [pick $input ($index) $length ]
+    set $out "$out$temp"
+:return $out
+
+}
+
 global test [/file/get "CHANGELOG" contents]
 
 :set test [:pick $test -1 255]
@@ -28,6 +47,13 @@ global escReplace {"\5C"="\\\\";"\08"="\\b";"\0C"="\\f";"\0A"="\\n";"\0D"="\\r";
     
     set temp [pick $test ($index) $length ]
     set $out "$out$temp"
+
+
+
 put "------------------------------------"
 put $out
  #   }
+put "------------------------------------"
+set $out [$SearchReplace input=$test search=("\"") replace=("\\\"")]
+put "--"
+put "$out"
