@@ -16,7 +16,7 @@
         local state "{\"installed_version\":\"$cur\",\
             \"latest_version\":\"$new\",\
             \"rel_u\":\"https://mikrotik.com/download/changelogs\"}"
-        /iot/mqtt/publish broker="Home Assistant" message=$state topic="$discoverypath$domainpath$ID/$name/state"
+        /iot/mqtt/publish broker="Home Assistant" message=$state topic="$discoverypath$domainpath$ID/$name/state" retain=yes
     }
     #-------------------------------------------------------
     #Handle routerboard firmware for non CHR
@@ -34,12 +34,15 @@
     #Handle RouterOS
     #-------------------------------------------------------
     #Get system software
+    system/package/update/check-for-updates
+    :delay 5s
     local cur [ /system/package/update/ get installed-version ]
     local new [ /system/package/update/ get latest-version ]
 
         #Get release note:
         /tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG"
-        #            http://upgrade.mikrotik.com/routeros/7.12beta7/CHANGELOG
+              #            http://upgrade.mikrotik.com/routeros/7.12beta7/CHANGELOG
+        :delay 5s
         global test [/file/get "CHANGELOG" contents]
         :put [$test]
         :put [:len  $test]
