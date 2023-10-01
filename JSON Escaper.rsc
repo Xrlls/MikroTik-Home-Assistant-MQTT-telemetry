@@ -31,20 +31,13 @@ global JsonPick do= {
 
 }
 
-global test [/file/get "CHANGELOG" contents]
+global test (([/tool/fetch "http://upgrade.mikrotik.com/routeros/7.12beta9/CHANGELOG" output=user as-value])->"data")
 
-:set test [:pick $test -1 255]
+:set test [:pick ($test) -1 255]
 #Text must be escaped before posting as JSON!
-:put [$test]
-#:put [:len  $test]
-
-
-
-set $out [$SearchReplace input=$test search=("\"") replace=("\\\"")]
-
+put [$test]
 
 put "------------------------------------"
-put $out
 
 local a2 [$JsonEscape input=$test]
 put $a2

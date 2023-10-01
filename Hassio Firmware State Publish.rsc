@@ -12,7 +12,11 @@
         global discoverypath
         global domainpath
         global ID
-        #post Routerboard firmware
+    
+    if ((typeof $url)!=nil) do={
+    set $url  "\",rel_u\":\"$url\""
+    }
+
         local state "{\"installed_version\":\"$cur\",\
             \"latest_version\":\"$new\",\
             \"rel_u\":\"https://mikrotik.com/download/changelogs\"}"
@@ -34,22 +38,16 @@
     #Handle RouterOS
     #-------------------------------------------------------
     #Get system software
-    system/package/update/check-for-updates
-    :delay 5s
-    local cur [ /system/package/update/ get installed-version ]
-    local new [ /system/package/update/ get latest-version ]
-
+    local versions [/system/package/update/check-for-updates as-value ]
+    local cur ($versions->"installed-version")
+    local new ($versions->"latest-version")
+    
         #Get release note:
-        /tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG"
-              #            http://upgrade.mikrotik.com/routeros/7.12beta7/CHANGELOG
-        :delay 5s
-        global test [/file/get "CHANGELOG" contents]
-        :put [$test]
-        :put [:len  $test]
+        local test ([/tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG" output=user as-value]->"data")
         :set test [:pick $test -1 255]
         #Text must be escaped before posting as JSON!
         :put [$test]
-        :put [:len  $test]
+#        :put [:len  $test]
 
     $poststate name="RouterOS" cur=$cur new=$new
 
@@ -70,6 +68,7 @@
     
             #Get firmware version for LTE interface
             local Firmware [/interface/lte firmware-upgrade [/interface/lte get $iface name] once as-value ]
+            :delay 5s
             local cur ($Firmware->"installed")
             local new ($Firmware->"latest")
 
