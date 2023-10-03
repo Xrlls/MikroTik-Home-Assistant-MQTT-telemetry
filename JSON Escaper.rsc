@@ -28,15 +28,8 @@ global JsonEscape do= {
 }
 
 global JsonPick do= {
-    put $input
     set $input [pick $input -1 $len]
     local length [len $input]
-    put $length
-    put $input
-    put  ("Last char:        \"".[pick $input ($length-1)]."\"")
-    put  ("Second last char: \"".[pick $input ($length-2)]."\"")
-    put ([pick $input ($length-1)] = "\\")
-    put ([pick $input ($length-2)] != "\\")
     if (([pick $input ($length-1)] = "\\") && ([pick $input ($length-2)] != "\\")) do= {
         set $input [:pick ($input) -1 ($length-1)]
     }
@@ -87,4 +80,5 @@ put "------------------------------------"
 
 local a5 [$JsonPick input=$a2 len=255]
 put $a5
+put [len $a5]
 
