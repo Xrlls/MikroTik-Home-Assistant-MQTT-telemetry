@@ -28,9 +28,9 @@
             \"stat_t\":\"$discoverypath$domainpath$ID/state\",\
             \"uniq_id\":\"$ID_$name\",\
             \"obj_id\":\"$ID_$name\",\
-            \"suggested_display_precision\": 1,\
-            \"unit_of_measurement\": \"$unit\",\
-            \"value_template\": \"{{ value_json.$name }}\",\
+\"suggested_display_precision\": 1,\
+      \"unit_of_measurement\": \"$unit\",\
+      \"value_template\": \"{{ value_json.$name }}\",\
             $dev\
         }"
         /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
@@ -40,11 +40,10 @@
     #-------------------------------------------------------
     if ([/system/resource/get board-name] != "CHR") do={
         foreach sensor in=[/system/health/find] do={
-            local name [/system/health/get $sensor name];#name
-            if ($unit="C") do={set $unit "\B0C"}
-            local unit [/system/health/get $sensor type];#unit
-            put $unit
-            $buildconfig name=$name unit=$unit
+        local name [/system/health/get $sensor name];#name
+        local unit [/system/health/get $sensor type];#unit
+        if ($unit="C") do={set $unit "\C2\B0\43"}
+        $buildconfig name=$name unit=$unit
         }
     }
 }
