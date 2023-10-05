@@ -28,9 +28,9 @@
             \"stat_t\":\"$discoverypath$domainpath$ID/state\",\
             \"uniq_id\":\"$ID_$name\",\
             \"obj_id\":\"$ID_$name\",\
-\"suggested_display_precision\": 1,\
-      \"unit_of_measurement\": \"$unit\",\
-      \"value_template\": \"{{ value_json.$name }}\",\
+            \"suggested_display_precision\": 1,\
+            \"unit_of_measurement\": \"$unit\",\
+            \"value_template\": \"{{ value_json.$name }}\",\
             $dev\
         }"
         /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
