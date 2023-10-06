@@ -14,7 +14,7 @@ foreach fname in=$fnames do={
         /system/script/add name=$fname policy=read source=$source
     } else={
         #put [/system/script/get $index name]
-        system/script/set $index policy=read source=source=$source
+        system/script/set $index policy=read source=$source
     }
 }
 
