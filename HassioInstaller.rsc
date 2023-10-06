@@ -22,19 +22,19 @@ global source ([tool/fetch $url output=user as-value ]->"data")
 #Install functions
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20Entity%20Publish.rsc"
 global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_SearchReplace" policy=read,test source=$source
+/system/script/add name="Hassio Firmware Entity Publish" policy=read,test source=$source
 
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20State%20Publish.rsc"
 global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_SearchReplace" policy=read,write,policy,test source=$source
+/system/script/add name="Hassio Firmware State Publish" policy=read,write,policy,test source=$source
 
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioSensorHealthEntityPublish.rsc"
 global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_SearchReplace" policy=read,test source=$source
+/system/script/add name="HassioSensorHealthEntityPublish" policy=read,test source=$source
 
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioSensorHealthStatePublish.rsc"
 global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_SearchReplace" policy=read,test source=$source
+/system/script/add name="HassioSensorHealthStatePublish" policy=read,test source=$source
 
 #Setup scheduler
 
