@@ -1,22 +1,15 @@
 # Use
-# local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
-# $SearchReplace input="abc" search="a" replace="b"
+# local JsonEscape [parse [system/script/get "HassioLib_JsonEscape" source]]
+# $JsonEscape input=$a4
 #
-#global SearchReplace do= {
-    :local out ""
-    :local index 0
-    :local length [:len $input]
-    :local findex
-    :local temp
-
-    set $findex [find $input $search ($index-1) ]
-    while ([len $findex] != "0") do={
-        set temp ([pick $input $index $findex ])
-        set $out "$out$temp$replace"
-        set $index ($findex+[len $search])
-        set $findex [find $input $search ($index-1) ]
+#global JsonEscape do= {
+    #:global SearchReplace
+    local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
+    :local escchars   {"\\"  ; "\""  ;"/";"\08";\;"\0C";\; "\0A";\;"\0D";"\08};
+    :local escReplace {"\\\\";"\\\"";"\\/";"\\b";"\\f";"\\n";"\\r";"\\t"}
+    foreach k,escchar in=$escchars do={
+        set $input [$SearchReplace input=$input search=$escchar replace=($escReplace->($k))]
     }
-    set temp [pick $input ($index) $length ]
-    set $out "$out$temp"
-    :return $out
+    return $input
+
 #}

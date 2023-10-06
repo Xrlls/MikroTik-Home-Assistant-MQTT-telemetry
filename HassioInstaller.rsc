@@ -1,23 +1,25 @@
 #Install libs
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioLib_DeviceString.rsc"
-global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_DeviceString" policy=read source=$source
 
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioLib_JsonEscape.rsc"
-global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_JsonEscape" policy=read source=$source
+local fnames {"HassioLib_DeviceString";"HassioLib_JsonEscape";"HassioLib_JsonPick";"HassioLib_LowercaseHex";"HassioLib_SearchReplace"}
 
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioLib_JsonPick.rsc"
-global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_JsonPick" policy=read source=$source
 
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioLib_LowercaseHex.rsc"
-global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_LowercaseHex" policy=read source=$source 
+foreach fname in=$fnames do={
+    put $fname
+    local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
+    local source ([tool/fetch $url output=user as-value ]->"data")
+    local index [/system/script/find name=$fname]
+    put $index
 
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioLib_SearchReplace.rsc"
-global source ([tool/fetch $url output=user as-value ]->"data")
-/system/script/add name="HassioLib_SearchReplace" policy=read source=$source
+    if ( [len $index] =0) do={
+        /system/script/add name=$fname policy=read source=$source
+    } else={
+        #put [/system/script/get $index name]
+        system/script/set $index policy=read source=source=$source
+    }
+}
+
+put "Functions"
+
 
 #Install functions
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20Entity%20Publish.rsc"
@@ -37,5 +39,4 @@ global source ([tool/fetch $url output=user as-value ]->"data")
 /system/script/add name="HassioSensorHealthStatePublish" policy=read,test source=$source
 
 #Setup scheduler
-
 
