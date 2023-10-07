@@ -28,7 +28,7 @@ if ( [len $index] =0) do={
     /system/script/add name=$fname policy=read source=$source
 } else={
     #put [/system/script/get $index name]
-    system/script/set $index policy=read source=$source
+    system/script/set $index policy=read,test source=$source
 }
 
 local fname "Hassio Firmware State Publish"
@@ -39,7 +39,7 @@ if ( [len $index] =0) do={
     /system/script/add name=$fname policy=read source=$source
 } else={
     #put [/system/script/get $index name]
-    system/script/set $index policy=read source=$source
+    system/script/set $index policy=read,write,policy,test source=$source
 }
 if ([/system/resource/get board-name] != "CHR") do={    
     local fname "HassioSensorHealthEntityPublish"
@@ -50,7 +50,7 @@ if ([/system/resource/get board-name] != "CHR") do={
         /system/script/add name=$fname policy=read source=$source
     } else={
         #put [/system/script/get $index name]
-        system/script/set $index policy=read source=$source
+        system/script/set $index policy=read,test source=$source
     }
     local fname "HassioSensorHealthStatePublish"
     local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
@@ -60,7 +60,7 @@ if ([/system/resource/get board-name] != "CHR") do={
         /system/script/add name=$fname policy=read source=$source
     } else={
         #put [/system/script/get $index name]
-        system/script/set $index policy=read source=$source
+        system/script/set $index policy=read,test source=$source
     }
 }
 #Setup scheduler
