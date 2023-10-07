@@ -10,9 +10,10 @@
 
     if ([/system/resource/get board-name] != "CHR") do={
         local string "{"
+        local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
         foreach sensor in=[/system/health/find] do={
             set $string (($string).("\"").\
-                ([/system/health/get $sensor name]).("\":").\
+                ("x").([$SearchReplace input=[/system/health/get $sensor name] search="-" replace="_"]).("\":").\
                 ([/system/health/get $sensor value]).(","))
         }
     set $string ([pick $string -1 ([len $string ]-1)]."}")
