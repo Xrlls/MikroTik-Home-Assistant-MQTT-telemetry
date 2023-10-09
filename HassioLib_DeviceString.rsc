@@ -50,34 +50,37 @@ else={
     }
 }
 
-if ( [len [/interface/bridge/find]]!= 0   ) do={ ; #check if [/interface/bridge/find]    is zero
-put "Bridge found"
-        #Get local IP address from bridge interface, and truncate prefix length
-        local ipaddress [/ip/address/get [find interface=[/interface/bridge/get [/interface/bridge/find] name]] address ]
-        :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
-        local urldomain [/ip/dns/static/ get [/ip/dns/static/ find address=$ipaddress name] name  ]
-        if ([:typeof (urldomain)] != "nill") do={set ipaddress $urldomain}
+# Find a reasonable link to WebFig if enabled.
+local urldomain
+local ipaddress
 
-        if ([:typeof (ipaddress)] != "nill") do={
-            :if (! [/ip/service/get www-ssl disabled ]) \
-                do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
-            else={if (! [/ip/service/get www disabled]) \
-                do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
-            }
-} else={
-    put "Bridge not found"
-    foreach addr in=[/ip/address/find] do={
-        local temp [/ip/address/get $addr address]
-        set $temp [:pick $temp 0 [:find $temp "/"]]
-        set $temp [/ip/dns/static/find address=$temp]
-        if ([len $temp] != 0) do={
-        set $temp  [/ip/dns/static/get $temp name]
-            :if (! [/ip/service/get www-ssl disabled ]) \
-                do={:set $url ",\"cu\":\"https://$temp/\""} \
-            else={if (! [/ip/service/get www disabled]) \
-                do={:set $url ",\"cu\":\"http://$temp/\""}}
+foreach bridge in=[/interface/bridge/find] do={
+    foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name]] do={
+        set ipaddress [/ip/address/get $AddressIndex address]
+        set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
+       foreach UrlIndex in=[/ip/dns/static/ find address=$ipaddress name] do={
+            set $urldomain [/ip/dns/static/ get $UrlIndex name  ]
         }
     }
+}
+if ([len $ipaddress]=0) do={
+    foreach addr in=[/ip/address/find] do={
+        local TempAddress [/ip/address/get $addr address]
+        set $TempAddress [:pick $TempAddress 0 [:find $TempAddress "/"]]
+        foreach UrlIndex in=[/ip/dns/static/find address=$TempAddress] do={
+            local TempUrlDomain [ip/dns/static/get $UrlIndex name]
+            if ([len $TempUrlDomain]>0) do={set $urldomain $TempUrlDomain}
+        }
+    }
+}
+if ([len $urldomain]>0) do={set $ipaddress $urldomain}
+
+local url
+if ([len $ipaddress] >0) do={
+    :if (! [/ip/service/get www-ssl disabled ]) \
+        do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
+    else={if (! [/ip/service/get www disabled]) \
+        do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
 }
         #-------------------------------------------------------
         #Build device string
@@ -89,6 +92,5 @@ put "Bridge found"
             \"sw\":\"$CSW\",\
             \"mf\":\"$Manu\"$url}"
 
-#put $dev
 
 return $dev
