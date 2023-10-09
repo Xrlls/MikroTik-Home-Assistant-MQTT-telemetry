@@ -7,16 +7,13 @@
     :local index 0
     :local length [:len $input]
     :local findex
-    :local temp
 
     set $findex [find $input $search ($index-1) ]
     while ([len $findex] != "0") do={
-        set temp ([pick $input $index $findex ])
-        set $out "$out$temp$replace"
+        set $out ($out.[pick $input $index $findex ].$replace)
         set $index ($findex+[len $search])
         set $findex [find $input $search ($index-1) ]
     }
-    set temp [pick $input ($index) $length ]
-    set $out "$out$temp"
+    set $out ($out.[pick $input ($index) $length ])
     :return $out
 #}
