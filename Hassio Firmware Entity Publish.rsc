@@ -1,4 +1,4 @@
-if ([system/package/find name="iot"]=0) do={ ; # If IOT packages is  not installed
+if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not installed
     log/error message="HassioMQTT: IOT package not installed."
 } else={
     if ([len [iot/mqtt/brokers/find name="Home Assistant"]]=0) do={ ;# If Home assistant broker does not exist
