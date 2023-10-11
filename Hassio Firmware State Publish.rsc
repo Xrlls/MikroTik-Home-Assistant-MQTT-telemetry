@@ -5,7 +5,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         log/error message="HassioMQTT: Broker does not exist."
     } else={
         local Ctr 0
-        while ((![/iot/mqtt/brokers/get [/iot/mqtt/brokers/find name="Home Assistant"] connected ])||(Ctr<12)) do={ ;# If Home assistant broker is not connected
+        while ((![/iot/mqtt/brokers/get [/iot/mqtt/brokers/find name="Home Assistant"] connected ])&&(Ctr<12)) do={ ;# If Home assistant broker is not connected
             log/info message="HassioMQTT: Broker not connected reattempting connection..."
             delay 1m; # Wait and attempt reconnect
             set $Ctr ($Ctr+1)
@@ -47,9 +47,10 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         if ([/system/resource/get board-name] != "CHR") do={
             #Get routerboard firmware
-            local cur [/system/routerboard/ get current-firmware]
-            local new [/system/routerboard/ get upgrade-firmware]
-
+            local Act [parse "/system/routerboard/get current-firmware"]
+            local cur [$Act]
+            local Act [parse "/system/routerboard/get upgrade-firmware"]
+            local new [$Act]
             #post Routerboard firmware
             $poststate name="RouterBOARD" cur=$cur new=$new
         }
