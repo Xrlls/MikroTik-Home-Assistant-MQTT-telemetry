@@ -28,7 +28,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
         local dev [$DeviceString]
-        global buildconfig do= {
+        local buildconfig do= {
             local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
             local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
 
