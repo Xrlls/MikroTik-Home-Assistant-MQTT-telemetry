@@ -3,10 +3,16 @@
 # $DeviceString
 #
 local ID
+local connections
+local hwversion
 local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
     if ([/system/resource/get board-name] != "CHR") do={
     set ID ("\"".[/system/routerboard get serial-number]."\"");#ID
+    set $hwversion [[:parse "[system/routerboard/get revision]"]]
+    if ([len $hwversion] >0) do={
+        set $hwversion ("\"hw_version\":\"".$hwversion."\",")
+    }
     } else={
     set ID ("\"".[system/license/get system-id ]."\"")
     }
@@ -19,13 +25,13 @@ local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
-        set $ID ($ID.",\"".\
-            [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]].\
-            "\"")
-    if ([/interface/ethernet/get $iface mac-address] != [/interface/ethernet/get $iface orig-mac-address]) do= {
-        set $ID ($ID.",\"".\
+        set $connections ($connections."[\"mac\",\"".\
             [$LowercaseHex input=[/interface/ethernet/get $iface orig-mac-address]].\
-            "\"")
+            "\"],")
+    if ([/interface/ethernet/get $iface mac-address] != [/interface/ethernet/get $iface orig-mac-address]) do= {
+        set $connections ($connections."[\"mac\",\"".\
+            [$LowercaseHex input=[/interface/ethernet/get $iface orig-mac-address]].\
+            "\"],")
     }
 }
 
@@ -34,9 +40,9 @@ if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
     local Condition [parse "local a [/interface/wireless/ find interface-type!=\"virtual\"];return \$a"]
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach iface in=[$Condition] do={
-        set $ID ($ID.",\"".\
+        set $connections ($connections."[\"mac\",\"".\
             [$LowercaseHex input=[$Action $iface]].\
-            "\"")
+            "\"],")
     }
 }\
 # Get Wi-Fi Wave2 MAC Addresses
@@ -44,11 +50,12 @@ else={
     local Condition [parse "local a [/interface/wifiwave2/radio/find];return \$a"]
     local Action [parse "local a [/interface/wifiwave2/radio/get \$1 radio-mac];return \$a"]
     foreach iface in=[$Condition] do={
-        set $ID ($ID.",\"".\
+        set $connections ($connections."[\"mac\",\"".\
             [$LowercaseHex input=[$Action $iface]].\
-            "\"")
+            "\"],")
     }
 }
+set $connections [pick $connections -1 ([len $connections]-1)]; #Remove trailing comma
 
 # Find a reasonable link to WebFig if enabled.
 local urldomain
@@ -87,8 +94,9 @@ if ([len $ipaddress] >0) do={
         #-------------------------------------------------------
         global dev "\"dev\":{\
             \"ids\":[$ID],\
+            \"connections\":[$connections],\
             \"name\":\"$Name\",\
-            \"mdl\":\"$Model\",\
+            \"mdl\":\"$Model\",$hwversion\
             \"sw\":\"$CSW\",\
             \"mf\":\"$Manu\"$url}"
 
