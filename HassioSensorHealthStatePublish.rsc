@@ -4,14 +4,14 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
     if ([len [iot/mqtt/brokers/find name="Home Assistant"]]=0) do={ ;# If Home assistant broker does not exist
         log/error message="HassioMQTT: Broker does not exist."
     } else={
-        global discoverypath "homeassistant/"
-        global domainpath "sensor/"
+        local discoverypath "homeassistant/"
+        local domainpath "sensor/"
 
         #-------------------------------------------------------
         #Get variables to build device string
         #-------------------------------------------------------
         #ID
-        global ID [/system/routerboard get serial-number] 
+        local ID [/system/routerboard get serial-number] 
 
         if ([/system/resource/get board-name] != "CHR") do={
             local string "{"

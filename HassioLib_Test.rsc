@@ -1,4 +1,4 @@
-global test (([/tool/fetch "http://upgrade.mikrotik.com/routeros/7.12beta9/CHANGELOG" output=user as-value])->"data")
+local test (([/tool/fetch "http://upgrade.mikrotik.com/routeros/7.12beta9/CHANGELOG" output=user as-value])->"data")
 #:set test [:pick ($test) -1 255]
 put [$test]
 

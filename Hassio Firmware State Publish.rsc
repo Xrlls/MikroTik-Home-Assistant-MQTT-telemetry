@@ -11,14 +11,14 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             set $Ctr ($Ctr+1)
             iot/mqtt/connect broker="Home Assistant"
         }
-        global discoverypath "homeassistant/"
-        global domainpath "update/"
+        local discoverypath "homeassistant/"
+        local domainpath "update/"
 
         #-------------------------------------------------------
         #Get variables to build device string
         #-------------------------------------------------------
         #ID
-        global ID
+        local ID
             if ([/system/resource/get board-name] != "CHR") do={
         set ID [/system/routerboard get serial-number];#ID
         } else={
@@ -26,10 +26,6 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         }
 
         local poststate do= {
-            global discoverypath
-            global domainpath
-            global ID
-
             if ((typeof $url)!=nil) do={
             set $url  ",\"release_url\":\"$url\""
             }
@@ -52,7 +48,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             local Act [parse "/system/routerboard/get upgrade-firmware"]
             local new [$Act]
             #post Routerboard firmware
-            $poststate name="RouterBOARD" cur=$cur new=$new
+            $poststate name="RouterBOARD" cur=$cur new=$new ID=$ID discoverypath=$discoverypath domainpath=$domainpath
         }
 
         #-------------------------------------------------------
@@ -82,7 +78,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             testing="https://mikrotik.com/download/changelogs/testing-release-tree"}
         set urls ($urls->[system/package/update/get channel ])
 
-        $poststate name="RouterOS" cur=$cur new=$new url=$urls note=$test
+        $poststate name="RouterOS" cur=$cur new=$new url=$urls note=$test ID=$ID discoverypath=$discoverypath domainpath=$domainpath
 
         #-------------------------------------------------------
         #Handle LTE interfaces
@@ -104,7 +100,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 local cur ($Firmware->"installed")
                 local new ($Firmware->"latest")
 
-                $poststate name=$modemname cur=$cur new=$new
+                $poststate name=$modemname cur=$cur new=$new ID=$ID discoverypath=$discoverypath domainpath=$domainpath
                 }
             }
         }

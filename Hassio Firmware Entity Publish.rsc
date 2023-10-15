@@ -11,14 +11,14 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         }
 
 
-        global discoverypath "homeassistant/"
-        global domainpath "update/"
+        local discoverypath "homeassistant/"
+        local domainpath "update/"
 
         #-------------------------------------------------------
         #Get variables to build device string
         #-------------------------------------------------------
 
-        global ID
+        local ID
         if ([/system/resource/get board-name] != "CHR") do={
         set ID [/system/routerboard get serial-number];#ID
         } else={
@@ -28,12 +28,8 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #Build device string
         #-------------------------------------------------------
         local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
-        global dev [$DeviceString]
-        global buildconfig do= {
-            global discoverypath
-            global domainpath
-            global ID
-            global dev
+        local dev [$DeviceString]
+        local buildconfig do= {
 
             #build config for Hassio
             local config "{\"~\":\"$discoverypath$domainpath$ID/$name\",\
@@ -49,13 +45,13 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #Handle routerboard firmware for non CHR
         #-------------------------------------------------------
         if ([/system/resource/get board-name] != "CHR") do={
-            $buildconfig name="RouterBOARD"
+            $buildconfig name="RouterBOARD" ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
         }
 
         #-------------------------------------------------------
         #Handle RouterOS
         #-------------------------------------------------------
-        $buildconfig name="RouterOS"
+        $buildconfig name="RouterOS" ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
 
         #-------------------------------------------------------
         #Handle LTE interfaces
@@ -71,7 +67,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 local modemname [:pick ($lte->"model")\
                     ([:find ($lte->"model") "\"" -1] +1)\
                     [:find ($lte->"model") "\"" [:find ($lte->"model") "\"" -1]]]
-                $buildconfig name=$modemname
+                $buildconfig name=$modemname ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
                 }
             }
         }

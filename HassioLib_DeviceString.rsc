@@ -85,7 +85,7 @@ if ([len $ipaddress] >0) do={
         #-------------------------------------------------------
         #Build device string
         #-------------------------------------------------------
-        global dev "\"dev\":{\
+        local dev "\"dev\":{\
             \"ids\":[$ID],\
             \"connections\":[$connections],\
             \"name\":\"$Name\",\

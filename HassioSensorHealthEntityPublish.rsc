@@ -10,14 +10,14 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             iot/mqtt/connect broker="Home Assistant"
         }
 
-        global discoverypath "homeassistant/"
-        global domainpath "sensor/"
+        local discoverypath "homeassistant/"
+        local domainpath "sensor/"
 
         #-------------------------------------------------------
         #Get variables to build device string
         #-------------------------------------------------------
 
-        global ID
+        local ID
         if ([/system/resource/get board-name] != "CHR") do={
             set ID [/system/routerboard get serial-number];#ID
         } else={
@@ -27,12 +27,8 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #Build device string
         #-------------------------------------------------------
         local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
-        global dev [$DeviceString]
+        local dev [$DeviceString]
         global buildconfig do= {
-            global discoverypath
-            global domainpath
-            global ID
-            global dev
             local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
             local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
 
@@ -56,7 +52,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 local name [/system/health/get $sensor name];#name
                 local unit [/system/health/get $sensor type];#unit
                 if ($unit="C") do={set $unit "\C2\B0\43"}
-                $buildconfig name=$name unit=$unit
+                $buildconfig name=$name unit=$unit ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
             }
         }
     }
