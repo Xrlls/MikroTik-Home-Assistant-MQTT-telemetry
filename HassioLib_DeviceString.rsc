@@ -25,21 +25,15 @@ local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
-        set $connections ($connections."[\"mac\",\"".\
-            [$LowercaseHex input=[/interface/ethernet/get $iface orig-mac-address]].\
-            "\"],")
-    if ([/interface/ethernet/get $iface mac-address] != [/interface/ethernet/get $iface orig-mac-address]) do= {
-        set $connections ($connections."[\"mac\",\"".\
-            [$LowercaseHex input=[/interface/ethernet/get $iface orig-mac-address]].\
-            "\"],")
-    }
+    set $connections ($connections."[\"mac\",\"".\
+        [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]].\
+        "\"],")
 }
 
 # Get Wi-Fi MAC addresses
 if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
-    local Condition [parse "local a [/interface/wireless/ find interface-type!=\"virtual\"];return \$a"]
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
-    foreach iface in=[$Condition] do={
+    foreach iface in=[[parse "/interface/wireless/ find interface-type!=\"virtual\""]] do={
         set $connections ($connections."[\"mac\",\"".\
             [$LowercaseHex input=[$Action $iface]].\
             "\"],")
@@ -47,9 +41,8 @@ if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
 }\
 # Get Wi-Fi Wave2 MAC Addresses
 else={
-    local Condition [parse "local a [/interface/wifiwave2/radio/find];return \$a"]
     local Action [parse "local a [/interface/wifiwave2/radio/get \$1 radio-mac];return \$a"]
-    foreach iface in=[$Condition] do={
+    foreach iface in=[[parse "/interface/wifiwave2/radio/find"]] do={
         set $connections ($connections."[\"mac\",\"".\
             [$LowercaseHex input=[$Action $iface]].\
             "\"],")
