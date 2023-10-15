@@ -7,20 +7,20 @@ local connections
 local hwversion
 local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
-    if ([/system/resource/get board-name] != "CHR") do={
+if ([/system/resource/get board-name] != "CHR") do={
     set ID ("\"".[/system/routerboard get serial-number]."\"");#ID
     set $hwversion [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
         set $hwversion ("\"hw_version\":\"".$hwversion."\",")
     }
-    } else={
+} else={
     set ID ("\"".[system/license/get system-id ]."\"")
-    }
+}
 
-        local Name [/system/identity/get name];       #Name
-        local Model [system/resource/get board-name]; #Mode
-        local CSW   [/system/resource/get version ];  #SW
-        local Manu [/system/resource/get platform];   #Manufacturer
+local Name [/system/identity/get name];       #Name
+local Model [system/resource/get board-name]; #Mode
+local CSW   [/system/resource/get version ];  #SW
+local Manu [/system/resource/get platform];   #Manufacturer
 
 
 # Get Ethernet MAC addresses
