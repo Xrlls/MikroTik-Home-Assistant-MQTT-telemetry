@@ -14,8 +14,8 @@ To reduce the attack surface for the router, these scripts do not subscribe to a
 
 ## Tested devices
 I have tested it on various MikroTik devices I have available:
-- RB5009
-- wAP R ac
+- RB5009UPr+S+
+- wAP ac LTE6 kit aka. wAP R ac
 - wAP ax^2
 - CHR
 
@@ -29,6 +29,8 @@ Home Assistant needs to have:
 - The MQTT integration must be installed
 - There must be a connection to (the same) MQTT server as you intend to connect the router to.
 The details of this is not covered in this guide.
+>[!NOTE]
+>If connecting multiple routers through MQTT, it is very important that they have a unique `client-id`. If the client IDs are not unique, the broker, such as Mosquito, will disconnect the clients. The `client-id` is by default `MT.`
 ### RouterOS
 The IOT packages needs to be installed. The installation is not covered in this guide.
 
