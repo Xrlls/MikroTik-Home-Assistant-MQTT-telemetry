@@ -47,6 +47,5 @@ The scripts currently depends on the name of the broker being `Home Assistant`. 
 ### Script Installation
 Run the command below from the terminal:
 
-    [[parse ([tool/fetch https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioInstaller.rsc output=user as-value ]->"data")]]
-
+    [[:parse ([/tool/fetch https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioInstaller.rsc output=user as-value ]->"data")]]
 

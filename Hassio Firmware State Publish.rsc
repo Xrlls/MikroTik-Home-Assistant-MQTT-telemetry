@@ -13,7 +13,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         }
         local discoverypath "homeassistant/"
         local domainpath "update/"
-
+:global HassioReleaseNote
         #-------------------------------------------------------
         #Get variables to build device string
         #-------------------------------------------------------
@@ -61,16 +61,21 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         local new ($versions->"latest-version")
 
         #Get release note:
-        local test ([/tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG" output=user as-value]->"data")
+        if (($HassioReleaseNote->"version")!=new) do={
+            #:global HassioReleaseNote
 
-        :set test [:pick $test -1 255]
+            :set ($HassioReleaseNote->"note") ([/tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG" output=user as-value]->"data")
+            :set ($HassioReleaseNote->"note") [:pick ($HassioReleaseNote->"note") -1 255]
 
-        #Text must be escaped before posting as JSON!
-        local JsonEscape [parse [system/script/get "HassioLib_JsonEscape" source]]
-        set $test [$JsonEscape input=$test]
+            #Text must be escaped before posting as JSON!
+            local JsonEscape [parse [system/script/get "HassioLib_JsonEscape" source]]
+            set ($HassioReleaseNote->"note") [$JsonEscape input=($HassioReleaseNote->"note")]
 
-        local JsonPick [parse [system/script/get "HassioLib_JsonPick" source]]
-        set $test [$JsonPick input=$test len=255]
+            local JsonPick [parse [system/script/get "HassioLib_JsonPick" source]]
+            set ($HassioReleaseNote->"note") [$JsonPick input=($HassioReleaseNote->"note") len=255]
+            :set ($HassioReleaseNote->"version") $new
+            /log/debug message="HassioMQTT: Release note fetched."
+        } else={/log/debug message="HassioMQTT: Release note already cached, not fetched."}
 
         local urls {development="https://mikrotik.com/download/changelogs/development-release-tree";\
             long-term="https://mikrotik.com/download/changelogs/long-term-release-tree";\
@@ -78,7 +83,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             testing="https://mikrotik.com/download/changelogs/testing-release-tree"}
         set urls ($urls->[system/package/update/get channel ])
 
-        $poststate name="RouterOS" cur=$cur new=$new url=$urls note=$test ID=$ID discoverypath=$discoverypath domainpath=$domainpath
+        $poststate name="RouterOS" cur=$cur new=$new url=$urls note=($HassioReleaseNote->"note") ID=$ID discoverypath=$discoverypath domainpath=$domainpath
 
         #-------------------------------------------------------
         #Handle LTE interfaces
