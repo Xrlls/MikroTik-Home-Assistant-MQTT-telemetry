@@ -13,7 +13,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         }
         local discoverypath "homeassistant/"
         local domainpath "update/"
-:global HassioReleaseNote
+        :global HassioReleaseNote
         #-------------------------------------------------------
         #Get variables to build device string
         #-------------------------------------------------------
