@@ -30,7 +30,7 @@ Home Assistant needs to have:
 - There must be a connection to (the same) MQTT server as you intend to connect the router to.
 The details of this is not covered in this guide.
 >[!NOTE]
->If connecting multiple routers through MQTT, it is very important that they have a unique `client-id`. If the client IDs are not unique, the broker, such as Mosquito, will disconnect the clients. The `client-id` is by default `MT`.
+>If connecting multiple routers through MQTT, it is very important that they each have a unique `client-id`. If the client IDs are not unique, the broker, such as Mosquitto, will disconnect the clients. The `client-id` is by default `MT`.
 ### RouterOS
 The IOT packages needs to be installed. The installation is not covered in this guide.
 
