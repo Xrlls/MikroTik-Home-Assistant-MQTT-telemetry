@@ -17,12 +17,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #Get variables to build device string
         #-------------------------------------------------------
 
-        local ID
-        if ([/system/resource/get board-name] != "CHR") do={
-            set ID [/system/routerboard get serial-number];#ID
-        } else={
-            set ID [system/license/get system-id ]
-        }
+        local ID [/system/routerboard get serial-number];#ID
         #-------------------------------------------------------
         #Build device string
         #-------------------------------------------------------
