@@ -40,18 +40,14 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 \"suggested_display_precision\": 1,\
                 \"unit_of_measurement\": \"$unit\",\
                 \"value_template\": \"{{ value_json.$jsonname | is_defined}}\",\
+                \"expire_after\":70,\
                 $dev\
             }")
             /iot/mqtt/publish broker="Home Assistant" message=$config topic=("$discoverypath$domainpath$ID/$name$NamePostfix/config") retain=yes        
         }
-        #-------------------------------------------------------
-        #Handle routerboard firmware for non CHR
-        #-------------------------------------------------------
-        if ([/system/resource/get board-name] != "CHR") do={
-            foreach sensor in=[/interface/ethernet/poe/find] do={
-                local name [/interface/ethernet/poe/get $sensor name];#name
-                $buildconfig name=($name) unit=W NamePostfix="_poe" ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
-            }
+        foreach sensor in=[/interface/ethernet/poe/find] do={
+            local name [/interface/ethernet/poe/get $sensor name];#name
+            $buildconfig name=($name) unit=W NamePostfix="_poe" ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
         }
     }
 }
