@@ -28,9 +28,8 @@ foreach iface in=[interface/ethernet/find ] do={
     set ($Device->"cns"->$index->1) [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]]
     set $index ($index+1)
 }
-
 # Get Wi-Fi MAC addresses
-if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
+if ([len [system/package/find name="wireless"]]  >0 ) do={
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach iface in=[[parse "/interface/wireless/ find interface-type!=\"virtual\""]] do={
         set ($Device->"cns"->$index->0) "mac"
@@ -40,7 +39,7 @@ if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
 }\
 # Get Wi-Fi Wave2 MAC Addresses
 else={
-    local Action [parse "local a [/interface/wifiwave2/radio/get \$1 radio-mac];return \$a"]
+    local Action [parse "local a [/interface/wifi/radio/get \$1 radio-mac];return \$a"]
     foreach iface in=[[parse "/interface/wifiwave2/radio/find"]] do={
         set ($Device->"cns"->$index->0) "mac"
         set ($Device->"cns"->$index->1) [$LowercaseHex input=[$Action $iface]]
@@ -50,7 +49,6 @@ else={
 # Find a reasonable link to WebFig if enabled.
 local urldomain
 local ipaddress
-
 foreach bridge in=[/interface/bridge/find] do={
     foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name]] do={
         set ipaddress [/ip/address/get $AddressIndex address]
