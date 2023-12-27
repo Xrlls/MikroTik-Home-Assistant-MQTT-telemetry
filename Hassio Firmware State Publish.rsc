@@ -27,7 +27,6 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
         local poststate do= {
             local state [serialize $data to=json]
-            put $state
             /iot/mqtt/publish broker="Home Assistant" message=$state topic="$discoverypath$domainpath$ID/$name/state" retain=yes
         }
         #-------------------------------------------------------
