@@ -28,17 +28,17 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
 
             #build config for Hassio
-            local config ("{\"name\":\"$name"." POE"."\",\
-                \"stat_t\":\"$discoverypath$domainpath$ID/state$NamePostfix\",\
-                \"uniq_id\":\"$ID_$name$NamePostfix\",\
-                \"obj_id\":\"$ID_$name$NamePostfix\",\
-                \"suggested_display_precision\": 1,\
-                \"unit_of_measurement\": \"$unit\",\
-                \"value_template\": \"{{ value_json.$jsonname | is_defined}}\",\
-                \"expire_after\":70,\
-                $dev\
-            }")
-            /iot/mqtt/publish broker="Home Assistant" message=$config topic=("$discoverypath$domainpath$ID/$name$NamePostfix/config") retain=yes        
+           local entity
+            set ($entity->"name") ("$name"." POE")
+            set ($entity->"stat_t") "$discoverypath$domainpath$ID/state$NamePostfix"
+            set ($entity->"uniq_id") "$ID_$name$NamePostfix"
+            set ($entity->"obj_id") "$ID_$name$NamePostfix"
+            set ($entity->"suggested_display_precision") 1
+            set ($entity->"unit_of_measurement") $unit
+            set ($entity->"value_template") "{{ (value_json.$jsonname)/10 | is_defined}}"
+            set ($entity->"expire_after") 70
+            set ($entity->"dev") $dev
+            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json] topic=("$discoverypath$domainpath$ID/$name$NamePostfix/config") retain=yes        
         }
         foreach sensor in=[/interface/ethernet/poe/find] do={
             local name [/interface/ethernet/poe/get $sensor name];#name

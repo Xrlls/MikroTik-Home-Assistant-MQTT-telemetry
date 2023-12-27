@@ -2,54 +2,51 @@
 # local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
 # $DeviceString
 #
-local ID
-local connections
+local Device
 local hwversion
 local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
 if ([/system/resource/get board-name] != "CHR") do={
-    set ID ("\"".[/system/routerboard get serial-number]."\"");#ID
+    set ($Device->"ids") [/system/routerboard get serial-number];#ID
     set $hwversion [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
-        set $hwversion ("\"hw_version\":\"".$hwversion."\",")
-    }
+        set ($Device->"hwversion") $hwversion
+   }
 } else={
-    set ID ("\"".[system/license/get system-id ]."\"")
+    set ($Device->"ids") ("\"".[system/license/get system-id ]."\"")
 }
 
-local Name [/system/identity/get name];       #Name
-local Model [system/resource/get board-name]; #Mode
-local CSW   [/system/resource/get version ];  #SW
-local Manu [/system/resource/get platform];   #Manufacturer
+set ($Device->"name") [/system/identity/get name];       #Name
+set ($Device->"model") [system/resource/get board-name]; #Mode
+set ($Device->"sw")   [/system/resource/get version ];  #SW
+set ($Device->"mf") [/system/resource/get platform];   #Manufacturer
 
-
+local index 0
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
-    set $connections ($connections."[\"mac\",\"".\
-        [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]].\
-        "\"],")
+    set ($Device->"connections"->$index->0) "mac"
+    set ($Device->"connections"->$index->1) [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]]
+    set $index ($index+1)
 }
 
 # Get Wi-Fi MAC addresses
 if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach iface in=[[parse "/interface/wireless/ find interface-type!=\"virtual\""]] do={
-        set $connections ($connections."[\"mac\",\"".\
-            [$LowercaseHex input=[$Action $iface]].\
-            "\"],")
+        set ($Device->"connections"->$index->0) "mac"
+        set ($Device->"connections"->$index->1) [$LowercaseHex input=[$Action $iface]]
+        set $index ($index+1)
     }
 }\
 # Get Wi-Fi Wave2 MAC Addresses
 else={
     local Action [parse "local a [/interface/wifiwave2/radio/get \$1 radio-mac];return \$a"]
     foreach iface in=[[parse "/interface/wifiwave2/radio/find"]] do={
-        set $connections ($connections."[\"mac\",\"".\
-            [$LowercaseHex input=[$Action $iface]].\
-            "\"],")
+        set ($Device->"connections"->$index->0) "mac"
+        set ($Device->"connections"->$index->1) [$LowercaseHex input=[$Action $iface]]
+        set $index ($index+1)
     }
 }
-set $connections [pick $connections -1 ([len $connections]-1)]; #Remove trailing comma
-
 # Find a reasonable link to WebFig if enabled.
 local urldomain
 local ipaddress
@@ -78,20 +75,9 @@ if ([len $urldomain]>0) do={set $ipaddress $urldomain}
 local url
 if ([len $ipaddress] >0) do={
     :if (! [/ip/service/get www-ssl disabled ]) \
-        do={:set $url ",\"cu\":\"https://$ipaddress/\""} \
+        do={:set ($Device->"cu") "https://$ipaddress/"} \
     else={if (! [/ip/service/get www disabled]) \
-        do={:set $url ",\"cu\":\"http://$ipaddress/\""}}
+        do={:set ($Device->"cu") "http://$ipaddress/"}}
 }
-        #-------------------------------------------------------
-        #Build device string
-        #-------------------------------------------------------
-        local dev "\"dev\":{\
-            \"ids\":[$ID],\
-            \"connections\":[$connections],\
-            \"name\":\"$Name\",\
-            \"mdl\":\"$Model\",$hwversion\
-            \"sw\":\"$CSW\",\
-            \"mf\":\"$Manu\"$url}"
 
-
-return $dev
+return $Device

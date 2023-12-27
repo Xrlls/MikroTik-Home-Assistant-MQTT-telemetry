@@ -12,13 +12,16 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         #ID
         local ID [/system/routerboard get serial-number] 
-
         local pos [/system/gps/monitor once as-value]
         local data
-        set ($data->"latitude") ($pos->"latitude")
-        set ($data->"longitude") ($pos->"longitude")
+        if (($pos->"valid")) do={
+            set ($data->"latitude") ($pos->"latitude")
+            set ($data->"longitude") ($pos->"longitude")
+        } else={
+            set ($data->"latitude") [:nothing]
+            set ($data->"longitude") [:nothing]
+        }
         set $data [serialize $data to=json]
-
         /iot/mqtt/publish broker="Home Assistant" message=$data topic="$discoverypath$domainpath$ID/attributes" retain=no   
     }
 }

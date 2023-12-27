@@ -29,14 +29,14 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
 
             #build config for Hassio
-            local config "{\"name\":\"$name\",\
-                \"uniq_id\":\"$ID_$name\",\
-                \"obj_id\":\"$ID_$name\",\
-                \"json_attributes_topic\":\"$discoverypath$domainpath$ID/attributes\",\
-                \"source_type\":\"gps\",\
-                $dev\
-            }"
-            /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
+            local entity
+            set ($entity->"name") $name
+            set ($entity->"uniq_id") "$ID_$name"
+            set ($entity->"obj_id") "$ID_$name"
+            set ($entity->json_attributes_topic) "$discoverypath$domainpath$ID/attributes"
+            set ($entity->"source_type") "gps"
+            set ($entity->"dev") $dev
+            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json] topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
         }
             local name "GPS";#name
             $buildconfig name=$name ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev

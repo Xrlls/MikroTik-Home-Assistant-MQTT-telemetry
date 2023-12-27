@@ -32,14 +32,13 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         local buildconfig do= {
 
             #build config for Hassio
-            local config "{\"~\":\"$discoverypath$domainpath$ID/$name\",\
-                \"name\":\"$name\",\
-                \"stat_t\":\"~/state\",\
-                \"uniq_id\":\"$ID_$name\",\
-                \"obj_id\":\"$ID_$name\",\
-                $dev\
-            }"
-            /iot/mqtt/publish broker="Home Assistant" message=$config topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
+            local entity
+            set ($entity->"name") $name
+            set ($entity->"stat_t") "~/state"
+            set ($entity->"uniq_id") "$ID_$name"
+            set ($entity->"obj_id") "$ID_$name"
+            set ($entity->"dev") $dev
+            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json] topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
         }
         #-------------------------------------------------------
         #Handle routerboard firmware for non CHR

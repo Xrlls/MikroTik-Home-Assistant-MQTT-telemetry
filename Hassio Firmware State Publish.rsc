@@ -5,7 +5,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         log/error message="HassioMQTT: Broker does not exist."
     } else={
         local Ctr 0
-        while ((![/iot/mqtt/brokers/get [/iot/mqtt/brokers/find name="Home Assistant"] connected ])&&(Ctr<12)) do={ ;# If Home assistant broker is not connected
+        while ((![/iot/mqtt/brokers/get [/iot/mqtt/brokers/find name="Home Assistant"] connected ])&&($Ctr<12)) do={ ;# If Home assistant broker is not connected
             log/info message="HassioMQTT: Broker not connected reattempting connection..."
             delay 1m; # Wait and attempt reconnect
             set $Ctr ($Ctr+1)
@@ -26,29 +26,20 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         }
 
         local poststate do= {
-            if ((typeof $url)!=nil) do={
-            set $url  ",\"release_url\":\"$url\""
-            }
-
-            if ((typeof $note)!=nil) do={
-            set $note ",\"release_summary\":\"$note\""
-            }
-
-            local state "{\"installed_version\":\"$cur\",\
-                \"latest_version\":\"$new\"$url$note}"
+            local state [serialize $data to=json]
+            put $state
             /iot/mqtt/publish broker="Home Assistant" message=$state topic="$discoverypath$domainpath$ID/$name/state" retain=yes
         }
         #-------------------------------------------------------
         #Handle routerboard firmware for non CHR
         #-------------------------------------------------------
         if ([/system/resource/get board-name] != "CHR") do={
+            local data
             #Get routerboard firmware
-            local Act [parse "/system/routerboard/get current-firmware"]
-            local cur [$Act]
-            local Act [parse "/system/routerboard/get upgrade-firmware"]
-            local new [$Act]
+            set ($data->"installed_version") [[parse "/system/routerboard/get current-firmware"]]
+            set ($data->"latest_version") [[parse "/system/routerboard/get upgrade-firmware"]]
             #post Routerboard firmware
-            $poststate name="RouterBOARD" cur=$cur new=$new ID=$ID discoverypath=$discoverypath domainpath=$domainpath
+            $poststate name="RouterBOARD" data=$data ID=$ID discoverypath=$discoverypath domainpath=$domainpath
         }
 
         #-------------------------------------------------------
@@ -57,33 +48,28 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #Get system software
         local versions [/system/package/update/check-for-updates as-value ]
 
-        local cur ($versions->"installed-version")
-        local new ($versions->"latest-version")
+        local data
+        set ($data->"installed_version") ($versions->"installed-version")
+        set ($data->"latest_version") ($versions->"latest-version")
 
         #Get release note:
-        if (($HassioReleaseNote->"version")!=new) do={
+        if (($HassioReleaseNote->"version")!=($data->"latest_version")) do={
             #:global HassioReleaseNote
 
-            :set ($HassioReleaseNote->"note") ([/tool/fetch "http://upgrade.mikrotik.com/routeros/$new/CHANGELOG" output=user as-value]->"data")
+            :set ($HassioReleaseNote->"note") ([/tool/fetch ("http://upgrade.mikrotik.com/routeros/".($data->"latest_version")."/CHANGELOG") output=user as-value]->"data")
             :set ($HassioReleaseNote->"note") [:pick ($HassioReleaseNote->"note") -1 255]
-
-            #Text must be escaped before posting as JSON!
-            local JsonEscape [parse [system/script/get "HassioLib_JsonEscape" source]]
-            set ($HassioReleaseNote->"note") [$JsonEscape input=($HassioReleaseNote->"note")]
-
-            local JsonPick [parse [system/script/get "HassioLib_JsonPick" source]]
-            set ($HassioReleaseNote->"note") [$JsonPick input=($HassioReleaseNote->"note") len=255]
-            :set ($HassioReleaseNote->"version") $new
+            :set ($HassioReleaseNote->"version") ($data->"latest_version")
             /log/debug message="HassioMQTT: Release note fetched."
         } else={/log/debug message="HassioMQTT: Release note already cached, not fetched."}
+        set ($data->"release_summary") ($HassioReleaseNote->"note")
 
         local urls {development="https://mikrotik.com/download/changelogs/development-release-tree";\
             long-term="https://mikrotik.com/download/changelogs/long-term-release-tree";\
             stable="https://mikrotik.com/download/changelogs/stable-release-tree";\
             testing="https://mikrotik.com/download/changelogs/testing-release-tree"}
-        set urls ($urls->[system/package/update/get channel ])
+        set ($data->"release_url") ($urls->[system/package/update/get channel ])
 
-        $poststate name="RouterOS" cur=$cur new=$new url=$urls note=($HassioReleaseNote->"note") ID=$ID discoverypath=$discoverypath domainpath=$domainpath
+        $poststate name="RouterOS" data=$data ID=$ID discoverypath=$discoverypath domainpath=$domainpath
 
         #-------------------------------------------------------
         #Handle LTE interfaces
@@ -95,6 +81,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         local lte [ [/interface/lte/monitor [/interface/lte get $iface name] once as-value] manufacturer]
             if ($lte->"manufacturer"="\"MikroTik\"") do={
                 {
+                local data
                 #build config for LTE
                 local modemname [:pick ($lte->"model")\
                     ([:find ($lte->"model") "\"" -1] +1)\
@@ -102,10 +89,10 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
                 #Get firmware version for LTE interface
                 local Firmware [/interface/lte firmware-upgrade [/interface/lte get $iface name] once as-value ]
-                local cur ($Firmware->"installed")
-                local new ($Firmware->"latest")
+                set ($data->"installed_version") ($Firmware->"installed")
+                set ($data->"latest_version") ($Firmware->"latest")
 
-                $poststate name=$modemname cur=$cur new=$new ID=$ID discoverypath=$discoverypath domainpath=$domainpath
+                $poststate name=$modemname data=$data ID=$ID discoverypath=$discoverypath domainpath=$domainpath
                 }
             }
         }
