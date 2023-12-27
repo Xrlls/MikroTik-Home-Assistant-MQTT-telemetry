@@ -8,7 +8,7 @@ local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
 if ([/system/resource/get board-name] != "CHR") do={
     set ($Device->"ids") [/system/routerboard get serial-number];#ID
-    set $hwversion [[:parse "[system/routerboard/get revision]"]]
+    set $hw_version [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
         set ($Device->"hwversion") $hwversion
    }
