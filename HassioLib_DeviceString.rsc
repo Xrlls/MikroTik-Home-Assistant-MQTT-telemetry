@@ -8,24 +8,24 @@ local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
 if ([/system/resource/get board-name] != "CHR") do={
     set ($Device->"ids") [/system/routerboard get serial-number];#ID
-    set $hw_version [[:parse "[system/routerboard/get revision]"]]
+    set $hwversion [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
-        set ($Device->"hwversion") $hwversion
+        set ($Device->"hw") $hwversion
    }
 } else={
     set ($Device->"ids") ("\"".[system/license/get system-id ]."\"")
 }
 
-set ($Device->"name") [/system/identity/get name];       #Name
-set ($Device->"model") [system/resource/get board-name]; #Mode
-set ($Device->"sw")   [/system/resource/get version ];  #SW
+set ($Device->"name") [/system/identity/get name];     #Name
+set ($Device->"mdl") [system/resource/get board-name]; #Mode
+set ($Device->"sw")   [/system/resource/get version ]; #SW
 set ($Device->"mf") [/system/resource/get platform];   #Manufacturer
 
 local index 0
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
-    set ($Device->"connections"->$index->0) "mac"
-    set ($Device->"connections"->$index->1) [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]]
+    set ($Device->"cns"->$index->0) "mac"
+    set ($Device->"cns"->$index->1) [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]]
     set $index ($index+1)
 }
 
@@ -33,8 +33,8 @@ foreach iface in=[interface/ethernet/find ] do={
 if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach iface in=[[parse "/interface/wireless/ find interface-type!=\"virtual\""]] do={
-        set ($Device->"connections"->$index->0) "mac"
-        set ($Device->"connections"->$index->1) [$LowercaseHex input=[$Action $iface]]
+        set ($Device->"cns"->$index->0) "mac"
+        set ($Device->"cns"->$index->1) [$LowercaseHex input=[$Action $iface]]
         set $index ($index+1)
     }
 }\
@@ -42,8 +42,8 @@ if ([len [system/package/find name="wifiwave2"]]  =0 ) do={
 else={
     local Action [parse "local a [/interface/wifiwave2/radio/get \$1 radio-mac];return \$a"]
     foreach iface in=[[parse "/interface/wifiwave2/radio/find"]] do={
-        set ($Device->"connections"->$index->0) "mac"
-        set ($Device->"connections"->$index->1) [$LowercaseHex input=[$Action $iface]]
+        set ($Device->"cns"->$index->0) "mac"
+        set ($Device->"cns"->$index->1) [$LowercaseHex input=[$Action $iface]]
         set $index ($index+1)
     }
 }
