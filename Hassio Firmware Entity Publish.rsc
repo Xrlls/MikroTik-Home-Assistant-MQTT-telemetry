@@ -33,6 +33,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
             #build config for Hassio
             local entity
+            set ($entity->"\7E") "$discoverypath$domainpath$ID/$name"
             set ($entity->"name") $name
             set ($entity->"stat_t") "~/state"
             set ($entity->"uniq_id") "$ID_$name"
