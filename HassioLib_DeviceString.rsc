@@ -15,7 +15,6 @@ if ([/system/resource/get board-name] != "CHR") do={
 } else={
     set ($Device->"ids") ("\"".[system/license/get system-id ]."\"")
 }
-:put "Data"
 set ($Device->"name") [/system/identity/get name];     #Name
 set ($Device->"mdl") [system/resource/get board-name]; #Mode
 set ($Device->"sw")   [/system/resource/get version ]; #SW
@@ -29,7 +28,6 @@ foreach iface in=[interface/ethernet/find ] do={
     set $index ($index+1)
 }
 # Get Wi-Fi MAC addresses
-    :put "WIFI"
     local iface 
     :onerror ErrorName in={set iface [[parse "/interface/wireless/ find interface-type!=\"virtual\""]]} do={set iface [:nothing]; log/info message="no wireless"}
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
@@ -39,7 +37,6 @@ foreach iface in=[interface/ethernet/find ] do={
         set $index ($index+1)
     }
 # Get Wi-Fi Wave2 MAC Addresses
-    :put "WIFI2"
     :onerror ErrorName in={set iface [[parse "/interface/wifiwave2/radio/find"]]} do={set iface [:nothing]; log/info message="no WIFI wave2"}
     local Action [parse "local a [/interface/wifi/radio/get \$1 radio-mac];return \$a"]
     foreach ciface in=$iface do={
