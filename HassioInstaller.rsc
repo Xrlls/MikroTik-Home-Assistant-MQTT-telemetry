@@ -97,11 +97,11 @@ if ([system/package/find name=gps and disabled=no]) do={
     local index [/system/scheduler/find name=$fname]
     if ( [len $index] =0) do={
         /system scheduler/add interval=0s name=$fname on-event=$fname policy=\
-        read,write,test start-time=startup
+        read,test start-time=startup
     } else={
         #put [/system/script/get $index name]
         /system scheduler/set $index interval=0s on-event=$fname policy=\
-        read,write,test start-time=startup
+        read,test start-time=startup
     }
     #--------------------------------------------------------------
     local fname "HassioDeviceTrackerStatePublish"
@@ -109,10 +109,10 @@ if ([system/package/find name=gps and disabled=no]) do={
     local source ([tool/fetch $url output=user as-value ]->"data")
     local index [/system/script/find name=$fname]
     if ( [len $index] =0) do={
-        /system/script/add name=$fname policy=read,write,policy,test source=$source
+        /system/script/add name=$fname policy=read,test source=$source
     } else={
         #put [/system/script/get $index name]
-        system/script/set $index policy=read,write,policy,test source=$source
+        system/script/set $index policy=read,test source=$source
     }
     system/script/run $fname
     local index [/system/scheduler/find name=$fname]
