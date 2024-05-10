@@ -18,6 +18,7 @@ I have tested it on various MikroTik devices I have available:
 - wAP ac LTE6 kit aka. wAP R ac
 - wAP ax^2
 - CHR
+- SXTsq Lite2
 
 I will happily test on any other devices you might want to gift me :)
 
