@@ -44,31 +44,28 @@ foreach iface in=[interface/ethernet/find ] do={
         set ($Device->"cns"->$index->1) [$LowercaseHex input=[$Action $ciface]]
         set $index ($index+1)
     }
+
 # Find a reasonable link to WebFig if enabled.
-local urldomain
 local ipaddress
 foreach bridge in=[/interface/bridge/find] do={
-    foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name]] do={
+    foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name] and disabled=no] do={
         set ipaddress [/ip/address/get $AddressIndex address]
         set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
-       foreach UrlIndex in=[/ip/dns/static/ find address=$ipaddress name] do={
-            set $urldomain [/ip/dns/static/ get $UrlIndex name  ]
-        }
+        do {set $ipaddress [resolve $ipaddress]
+            set $ipaddress [pick $ipaddress 0 ([len $ipaddress]-1)]}\
+        on-error={}
     }
 }
 if ([len $ipaddress]=0) do={
-    foreach addr in=[/ip/address/find] do={
+    foreach addr in=[/ip/address/find disabled=no] do={
         local TempAddress [/ip/address/get $addr address]
         set $TempAddress [:pick $TempAddress 0 [:find $TempAddress "/"]]
-        foreach UrlIndex in=[/ip/dns/static/find address=$TempAddress] do={
-            local TempUrlDomain [ip/dns/static/get $UrlIndex name]
-            if ([len $TempUrlDomain]>0) do={set $urldomain $TempUrlDomain}
-        }
+        do {set $ipaddress [resolve $TempAddress]
+            set $ipaddress [pick $ipaddress 0 ([len $ipaddress]-1)]}\
+        on-error={}
     }
 }
-if ([len $urldomain]>0) do={set $ipaddress $urldomain}
 
-local url
 if ([len $ipaddress] >0) do={
     :if (! [/ip/service/get www-ssl disabled ]) \
         do={:set ($Device->"cu") "https://$ipaddress/"} \
