@@ -19,7 +19,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         #ID
         local ID
-            if ([/system/resource/get board-name] != "CHR") do={
+            if ([pick [/system/resource/get board-name] 0 3] != "CHR") do={
         set ID [/system/routerboard get serial-number];#ID
         } else={
             set ID [system/license/get system-id ]
@@ -32,7 +32,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         #Handle routerboard firmware for non CHR
         #-------------------------------------------------------
-        if ([/system/resource/get board-name] != "CHR") do={
+        if ([pick [/system/resource/get board-name] 0 3] != "CHR") do={
             local data
             #Get routerboard firmware
             set ($data->"installed_version") [[parse "/system/routerboard/get current-firmware"]]

@@ -6,7 +6,7 @@ local Device
 local hwversion
 local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
-if ([/system/resource/get board-name] != "CHR") do={
+if ([pick [/system/resource/get board-name] 0 3] != "CHR") do={
     set ($Device->"ids") [/system/routerboard get serial-number];#ID
     set $hwversion [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
