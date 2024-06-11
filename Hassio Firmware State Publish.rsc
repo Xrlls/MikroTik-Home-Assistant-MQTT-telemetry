@@ -87,7 +87,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                     [:find ($lte->"model") "\"" [:find ($lte->"model") "\"" -1]]]
 
                 #Get firmware version for LTE interface
-                local Firmware [/interface/lte firmware-upgrade [/interface/lte get $iface name] once as-value ]
+                local Firmware [/interface/lte firmware-upgrade [/interface/lte get $iface name] as-value ]
                 set ($data->"installed_version") ($Firmware->"installed")
                 set ($data->"latest_version") ($Firmware->"latest")
 
