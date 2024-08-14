@@ -16,9 +16,10 @@ To reduce the attack surface for the router, these scripts do not subscribe to a
 I have tested it on various MikroTik devices I have available:
 - RB5009UPr+S+
 - wAP ac LTE6 kit aka. wAP R ac
-- wAP ax^2
+- hAP ax^2
 - CHR
 - SXTsq Lite2
+- L009UiGS-2HaxD-IN
 
 I will happily test on any other devices you might want to gift me :)
 
