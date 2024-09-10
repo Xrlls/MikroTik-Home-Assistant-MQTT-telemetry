@@ -14,7 +14,7 @@ if (!([/system/resource/get board-name ]~"^CHR")) do={
         set ($Device->"hw") $hwversion
    }
 } else={
-    set ($Device->"ids") ("\"".[system/license/get system-id ]."\"")
+    set ($Device->"ids") [system/license/get system-id ]
 }
 set ($Device->"name") [/system/identity/get name];     #Name
 set ($Device->"mdl") [system/resource/get board-name]; #Mode
