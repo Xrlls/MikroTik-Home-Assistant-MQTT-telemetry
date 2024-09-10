@@ -13,7 +13,11 @@ foreach i in=[/system/ups/ find] do={
         }
     :set ($device->"dev"->"sn") [/system/ups get $i serial]
     :set ($device ->"dev"->"ids") ($device->"dev"->"sn")
-    :set ($device->"dev"->"via_device") [/system/routerboard get serial-number]
+    if (!([/system/resource/get board-name ]~"^CHR")) do={
+        :set ($device->"dev"->"via_device") [/system/routerboard get serial-number]
+    } else={
+        :set ($device->"dev"->"via_device") [system/license/get system-id ]
+    }
     :set ($device->"dev"->"name") [/system/ups get $i name]
 
 # Find a reasonable link to WebFig if enabled.
