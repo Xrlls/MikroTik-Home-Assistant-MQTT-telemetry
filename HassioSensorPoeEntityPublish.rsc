@@ -35,7 +35,8 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             set ($entity->"obj_id") "$ID_$name$NamePostfix"
             set ($entity->"suggested_display_precision") 1
             set ($entity->"unit_of_measurement") $unit
-            set ($entity->"value_template") "{{ (value_json.$jsonname | is_defined)/10}}"
+            set ($entity->"dev_cla") "power"
+            set ($entity->"value_template") "{{ (value_json.$jsonname/10)  | is_defined}}"
             set ($entity->"expire_after") 70
             set ($entity->"dev") $dev
             /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json] topic=("$discoverypath$domainpath$ID/$name$NamePostfix/config") retain=yes        

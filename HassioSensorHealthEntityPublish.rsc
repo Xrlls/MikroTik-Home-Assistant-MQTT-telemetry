@@ -27,7 +27,10 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         local buildconfig do= {
             local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
             local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
-
+            local devcla
+            :set ($devcla->"V") "voltage"
+            :set ($devcla->"\C2\B0\43") "temperature"
+            :set ($devcla->"W") "power"
             #build config for Hassio
             local entity
             set ($entity->"name") $name
@@ -36,6 +39,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             set ($entity->"obj_id") "$ID_$name"
             set ($entity->"suggested_display_precision") 1
             set ($entity->"unit_of_measurement") $unit
+            set ($entity->"dev_cla") ($devcla->$unit)
             set ($entity->"value_template") "{{ value_json.$jsonname }}"
             set ($entity->"expire_after") 70
             set ($entity->"dev") $dev
