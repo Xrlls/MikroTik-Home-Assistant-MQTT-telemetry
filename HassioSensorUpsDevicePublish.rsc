@@ -8,7 +8,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($device->"dev"->"mdl") [/system/ups get $i model]
     :local delimiterIndex [find ($device->"dev"->"mdl") $delimiter]
     :if ([:len $delimiterIndex]>0) do={
-        :set ($device->"dev"->"sw") [:pick ($device->"dev"->"mdl") ($delimiterIndex + [:len $delimiter]) [:len ($devic>
+        :set ($device->"dev"->"sw") [:pick ($device->"dev"->"mdl") ($delimiterIndex + [:len $delimiter]) [:len ($device->"dev"->"mdl")]]
         :set ($device->"dev"->"mdl") [:pick ($device->"dev"->"mdl") -1 $delimiterIndex]
         }
     :set ($device->"dev"->"sn") [/system/ups get $i serial]
@@ -19,7 +19,7 @@ foreach i in=[/system/ups/ find] do={
 # Find a reasonable link to WebFig if enabled.
 :local ipaddress
 :foreach bridge in=[/interface/bridge/find] do={
-    :foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name] and disabled=no] do>
+    :foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name] and disabled=no] do={
         :set ipaddress [/ip/address/get $AddressIndex address]
         :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
         :do {:set $ipaddress [:resolve $ipaddress]
