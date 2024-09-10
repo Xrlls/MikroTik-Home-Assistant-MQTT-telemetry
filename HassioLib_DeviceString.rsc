@@ -6,8 +6,9 @@ local Device
 local hwversion
 local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
-if ([pick [/system/resource/get board-name] 0 3] != "CHR") do={
+if (!([/system/resource/get board-name ]~"^CHR")) do={
     set ($Device->"ids") [/system/routerboard get serial-number];#ID
+    set ($Device->"sn") ($Device->"ids")
     set $hwversion [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
         set ($Device->"hw") $hwversion
@@ -28,7 +29,7 @@ foreach iface in=[interface/ethernet/find ] do={
     set $index ($index+1)
 }
 # Get Wi-Fi MAC addresses
-    local iface 
+    local iface
     :onerror ErrorName in={set iface [[parse "/interface/wireless/ find interface-type!=\"virtual\""]]} do={set iface [:nothing]; log/info message="no wireless"}
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach ciface in=$iface do={
