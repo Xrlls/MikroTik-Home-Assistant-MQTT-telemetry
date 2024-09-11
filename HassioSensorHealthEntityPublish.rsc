@@ -14,12 +14,6 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         local domainpath "sensor/"
 
         #-------------------------------------------------------
-        #Get variables to build device string
-        #-------------------------------------------------------
-
-        local ID [/system/routerboard get serial-number];#ID
-
-        #-------------------------------------------------------
         #Build device string
         #-------------------------------------------------------
         local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
@@ -33,23 +27,24 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             :set ($devcla->"W") "power"
             #build config for Hassio
             local entity
+            set ($entity->"dev") $dev
             set ($entity->"name") $name
-            set ($entity->"stat_t") "$discoverypath$domainpath$ID/state"
-            set ($entity->"uniq_id") "$ID_$name"
-            set ($entity->"obj_id") "$ID_$name"
+            set ($entity->"stat_t") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/state")
+            set ($entity->"uniq_id") (($entity->"dev"->"ids")."_$name")
+            set ($entity->"obj_id") ($entity->"uniq_id")
             set ($entity->"suggested_display_precision") 1
             set ($entity->"unit_of_measurement") $unit
             set ($entity->"dev_cla") ($devcla->$unit)
             set ($entity->"value_template") "{{ value_json.$jsonname }}"
             set ($entity->"expire_after") 70
-            set ($entity->"dev") $dev
-            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json] topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
+            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
+                topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name/config") retain=yes              
         }
         foreach sensor in=[/system/health/find] do={
             local name [/system/health/get $sensor name];#name
             local unit [/system/health/get $sensor type];#unit
             if ($unit="C") do={set $unit "\C2\B0\43"}
-            $buildconfig name=$name unit=$unit ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            $buildconfig name=$name unit=$unit discoverypath=$discoverypath domainpath=$domainpath dev=$dev
         }
     }
 }

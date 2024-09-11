@@ -14,12 +14,6 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         local domainpath "device_tracker/"
 
         #-------------------------------------------------------
-        #Get variables to build device string
-        #-------------------------------------------------------
-
-        local ID [/system/routerboard get serial-number];#ID
-
-        #-------------------------------------------------------
         #Build device string
         #-------------------------------------------------------
         local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
@@ -30,15 +24,16 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
             #build config for Hassio
             local entity
-            set ($entity->"name") $name
-            set ($entity->"uniq_id") "$ID_$name"
-            set ($entity->"obj_id") "$ID_$name"
-            set ($entity->"json_attributes_topic") "$discoverypath$domainpath$ID/attributes"
-            set ($entity->"source_type") "gps"
             set ($entity->"dev") $dev
-            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json] topic="$discoverypath$domainpath$ID/$name/config" retain=yes              
+            set ($entity->"name") $name
+            set ($entity->"uniq_id") (($entity->"dev"->"ids")."_$name")
+            set ($entity->"obj_id") ($entity->"uniq_id")
+            set ($entity->"json_attributes_topic") ("$discoverypath$domainpath".($entity->"dev"->"ids")"/attributes")
+            set ($entity->"source_type") "gps"
+            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
+                topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name/config") retain=yes              
         }
             local name "GPS";#name
-            $buildconfig name=$name ID=$ID discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            $buildconfig name=$name discoverypath=$discoverypath domainpath=$domainpath dev=$dev
     }
 }
