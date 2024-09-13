@@ -1,16 +1,12 @@
 #Install libs
-
-local fnames {"HassioLib_DeviceString";"HassioLib_JsonEscape";"HassioLib_JsonPick";"HassioLib_LowercaseHex";"HassioLib_SearchReplace"}
-
+local fnames {"HassioLib_DeviceString";"HassioLib_LowercaseHex";"HassioLib_SearchReplace"}
 
 foreach fname in=$fnames do={
     #--------------------------------------------------------------
-    put $fname
+    put "installing: $fname"
     local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
     local source ([tool/fetch $url output=user as-value ]->"data")
     local index [/system/script/find name=$fname]
-    put $index
-
     if ( [len $index] =0) do={
         /system/script/add name=$fname policy=read source=$source
     } else={
@@ -21,159 +17,91 @@ foreach fname in=$fnames do={
 }
 
 #remove legacy libs if installed
-
 local fnames {"HassioLib_JsonEscape";"HassioLib_JsonPick"}
-
 
 foreach fname in=$fnames do={
     #--------------------------------------------------------------
-    put $fname
+    put "Removing: $fname"
     foreach func in=[/system/script/find name=$fname] do={
         /system/script/remove $func
     }
     #--------------------------------------------------------------
 }
 
-
 put "Functions"
-
     #--------------------------------------------------------------
+local deploy do={
+    put "installing: $fname"
+    :if ([:len $url]=0) do={
+        set $url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
+    }
+    local source ([tool/fetch $url output=user as-value ]->"data")
+    local index [/system/script/find name=$fname]
+    if ( [len $index] =0) do={
+        /system/script/add name=$fname policy=$policy source=$source
+    } else={
+        #put [/system/script/get $index name]
+        system/script/set $index policy=$policy source=$source
+    }
+    system/script/run $fname
+    local index [/system/scheduler/find name=$fname]
+    if ( [len $index] =0) do={
+        /system scheduler/add interval=$interval name=$fname on-event=$fname policy=\
+        $policy start-date=2023-09-25 start-time=startup
+    } else={
+        #put [/system/script/get $index name]
+        /system scheduler/set $index interval=$interval on-event=$fname policy=\
+        $policy start-date=2023-09-25 start-time=startup
+    }
+}
+
 local fname "HassioFirmwareEntityPublish"
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20Entity%20Publish.rsc"
-local source ([tool/fetch $url output=user as-value ]->"data")
-local index [/system/script/find name=$fname]
-if ( [len $index] =0) do={
-    /system/script/add name=$fname policy=read,test source=$source
-} else={
-    #put [/system/script/get $index name]
-    system/script/set $index policy=read,test source=$source
-}
-system/script/run $fname
-local index [/system/scheduler/find name=$fname]
-if ( [len $index] =0) do={
-    /system scheduler/add interval=0s name=$fname on-event=$fname policy=\
-    read,test start-date=2023-09-25 start-time=startup
-} else={
-    #put [/system/script/get $index name]
-    /system scheduler/set $index interval=0s on-event=$fname policy=\
-    read,test start-date=2023-09-25 start-time=startup
-}
-    #--------------------------------------------------------------
+local interval "0s"
+local policy "read,test"
+
+$deploy fname=$fname url=$url interval=$interval policy=$policy
+ 
+   #--------------------------------------------------------------
 local fname "HassioFirmwareStatePublish"
 local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20State%20Publish.rsc"
-local source ([tool/fetch $url output=user as-value ]->"data")
-local index [/system/script/find name=$fname]
-if ( [len $index] =0) do={
-    /system/script/add name=$fname policy=read,write,policy,test source=$source
-} else={
-    #put [/system/script/get $index name]
-    system/script/set $index policy=read,write,policy,test source=$source
-}
-system/script/run $fname
-local index [/system/scheduler/find name=$fname]
-if ( [len $index] =0) do={
-    /system scheduler/add interval=6h name=$fname on-event=$fname policy=\
-    read,write,policy,test start-date=2023-09-25 start-time=startup
-} else={
-    #put [/system/script/get $index name]
-    /system scheduler/set $index interval=6h on-event=$fname policy=\
-    read,write,policy,test start-date=2023-09-25 start-time=startup
-}
+local interval "6h"
+local policy "read,write,policy,test"
+
+$deploy fname=$fname url=$url interval=$interval policy=$policy
 
 if ([system/package/find name=gps and disabled=no]) do={
     put "GPS found, installing position telemetry..."
     #--------------------------------------------------------------
     local fname "HassioDeviceTrackerEntityPublish"
-    local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioDeviceTrackerEntityPublish.rsc"
-    local source ([tool/fetch $url output=user as-value ]->"data")
-    local index [/system/script/find name=$fname]
-    if ( [len $index] =0) do={
-        /system/script/add name=$fname policy=read,test source=$source
-    } else={
-        #put [/system/script/get $index name]
-        system/script/set $index policy=read,test source=$source
-    }
-    system/script/run $fname
-    local index [/system/scheduler/find name=$fname]
-    if ( [len $index] =0) do={
-        /system scheduler/add interval=0s name=$fname on-event=$fname policy=\
-        read,test start-time=startup
-    } else={
-        #put [/system/script/get $index name]
-        /system scheduler/set $index interval=0s on-event=$fname policy=\
-        read,test start-time=startup
-    }
+    local interval "0s"
+    local policy "read,test"
+
+    $deploy fname=$fname interval=$interval policy=$policy
+
     #--------------------------------------------------------------
     local fname "HassioDeviceTrackerStatePublish"
-    local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioDeviceTrackerStatePublish.rsc"
-    local source ([tool/fetch $url output=user as-value ]->"data")
-    local index [/system/script/find name=$fname]
-    if ( [len $index] =0) do={
-        /system/script/add name=$fname policy=read,test source=$source
-    } else={
-        #put [/system/script/get $index name]
-        system/script/set $index policy=read,test source=$source
-    }
-    system/script/run $fname
-    local index [/system/scheduler/find name=$fname]
-    if ( [len $index] =0) do={
-        /system scheduler/add interval=1m name=$fname on-event=$fname policy=\
-        read,test start-time=startup
-    } else={
-        #put [/system/script/get $index name]
-        /system scheduler/set $index interval=1m on-event=$fname policy=\
-        read,test start-time=startup
-    }
+    local interval "1m"
+    local policy "read,test"
+
+    $deploy fname=$fname interval=$interval policy=$policy
 }
 
-
-
-if ([pick [system/resource/get board-name] 0 3] != "CHR") do={
+if (!([/system/resource/get board-name ]~"^CHR")) do={
     if ([[:parse "[len [/system/health/find]]"]] >0) do={
         put "Health sensors found, installing telemetry..."    
         #--------------------------------------------------------------
         local fname "HassioSensorHealthEntityPublish"
-        local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
-        local source ([tool/fetch $url output=user as-value ]->"data")
-        local index [/system/script/find name=$fname]
-        if ( [len $index] =0) do={
-            /system/script/add name=$fname policy=read,test source=$source
-        } else={
-            #put [/system/script/get $index name]
-            system/script/set $index policy=read,test source=$source
-        }
-        system/script/run $fname
-        local index [/system/scheduler/find name=$fname]
-        if ( [len $index] =0) do={
-            /system scheduler/add interval=0s name=$fname on-event=$fname policy=\
-            read,write,test start-date=2023-09-25 start-time=startup
-        } else={
-            #put [/system/script/get $index name]
-            /system scheduler/set $index interval=0s on-event=$fname policy=\
-            read,write,test start-date=2023-09-25 start-time=startup
-        }
+        local interval "0s"
+        local policy "read,test"
 
+        $deploy fname=$fname interval=$interval policy=$policy
         #--------------------------------------------------------------
         local fname "HassioSensorHealthStatePublish"
-        local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
-        local source ([tool/fetch $url output=user as-value ]->"data")
-        local index [/system/script/find name=$fname]
-        if ( [len $index] =0) do={
-            /system/script/add name=$fname policy=read,write,test source=$source
-        } else={
-            #put [/system/script/get $index name]
-            system/script/set $index policy=read,write,test source=$source
-        }
-        system/script/run $fname
-        local index [/system/scheduler/find name=$fname]
-        if ( [len $index] =0) do={
-            /system scheduler/add interval=1m name=$fname on-event=$fname policy=\
-            read,write,test start-date=2023-09-25 start-time=startup
-        } else={
-            #put [/system/script/get $index name]
-            /system scheduler/set $index interval=1m on-event=$fname policy=\
-            read,write,test start-date=2023-09-25 start-time=startup
-        }
+        local interval "1m"
+        local policy "read,write,test"
+
+        $deploy fname=$fname interval=$interval policy=$policy
     }
     #--------------------------------------------------------------
     put "Checking for POE support..."
@@ -184,50 +112,19 @@ if ([pick [system/resource/get board-name] 0 3] != "CHR") do={
         put "   POE supported\n\r   Installing POE power monitor"
     #--------------------------------------------------------------
         local fname "HassioSensorPoeEntityPublish"
-        local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
-        local source ([tool/fetch $url output=user as-value ]->"data")
-        local index [/system/script/find name=$fname]
-        if ( [len $index] =0) do={
-            /system/script/add name=$fname policy=read,test source=$source
-        } else={
-            #put [/system/script/get $index name]
-            system/script/set $index policy=read,test source=$source
-        }
-        system/script/run $fname
-        local index [/system/scheduler/find name=$fname]
-        if ( [len $index] =0) do={
-            /system scheduler/add interval=0s name=$fname on-event=$fname policy=\
-            read,write,test start-date=2023-09-25 start-time=startup
-        } else={
-            #put [/system/script/get $index name]
-            /system scheduler/set $index interval=0s on-event=$fname policy=\
-            read,write,test start-date=2023-09-25 start-time=startup
-        }
+        local interval "0s"
+        local policy "read,test"
+
+        $deploy fname=$fname interval=$interval policy=$policy
     #--------------------------------------------------------------
         local fname "HassioSensorPoeStatePublish"
-        local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
-        local source ([tool/fetch $url output=user as-value ]->"data")
-        local index [/system/script/find name=$fname]
-        if ( [len $index] =0) do={
-            /system/script/add name=$fname policy=read,test source=$source
-        } else={
-            #put [/system/script/get $index name]
-            system/script/set $index policy=read,test source=$source
-        }
-        system/script/run $fname
-        local index [/system/scheduler/find name=$fname]
-        if ( [len $index] =0) do={
-            /system scheduler/add interval=1m name=$fname on-event=$fname policy=\
-            read,test start-date=2023-09-25 start-time=startup
-        } else={
-            #put [/system/script/get $index name]
-            /system scheduler/set $index interval=1m on-event=$fname policy=\
-            read,test start-date=2023-09-25 start-time=startup
-        }
+        local interval "1m"
+        local policy "read,test"
+
+        $deploy fname=$fname interval=$interval policy=$policy
     #--------------------------------------------------------------
     } else={
         put "   POE not supported"
     }
     set PoeInstall
 }
-
