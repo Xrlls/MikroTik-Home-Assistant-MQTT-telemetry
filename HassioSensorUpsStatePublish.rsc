@@ -22,8 +22,8 @@
 :local ci [:find [:tostr ($state->"runtime-left")] ":" -1]
 :set ($stateout->"runtime_left") ([:pick ($state->"runtime-left") -1 ($ci)] * 60 ); #Convert hours to minutes
 :local ci2 [:find ($state->"runtime-left") ":" $ci]
-:set ($stateout->"runtime_left") ((($stateout->"runtime_left") + [:pick ($state->"runtime-left") ($ci+1) $ci2]) * 60 )>
-:set ($stateout->"runtime_left") ( ($stateout->"runtime_left") + [:pick ($state->"runtime-left") ($ci2+1) [:len ($stat>
+:set ($stateout->"runtime_left") ((($stateout->"runtime_left") + [:pick ($state->"runtime-left") ($ci+1) $ci2]) * 60 )
+:set ($stateout->"runtime_left") ( ($stateout->"runtime_left") + [:pick ($state->"runtime-left") ($ci2+1) [:len ($state->"runtime-left")]])
 :set ($stateout->"runtime_left") [$adec (($stateout->"runtime_left")*1667) 5]; #Convert seconds to fractional minutes
 #------------------------------------------
 
@@ -31,5 +31,5 @@
 :set ($stateout->"hid_self_test") ($state->"hid-self-test")
 :set ($stateout->"line_voltage") [$adec ($state->"line-voltage") 2]
 
-/iot/mqtt/publish broker="Home Assistant" topic=($discoverypath."sensor/".[/system/ups/get $ups serial]."/state") mess>
+/iot/mqtt/publish broker="Home Assistant" topic=($discoverypath."sensor/".[/system/ups/get $ups serial]."/state") message=[:serialize $stateout to=json]
 }
