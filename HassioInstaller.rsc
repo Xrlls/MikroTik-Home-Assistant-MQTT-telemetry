@@ -1,5 +1,7 @@
 #Install libs
+
 local fnames {"HassioLib_DeviceString";"HassioLib_LowercaseHex";"HassioLib_SearchReplace"}
+
 
 foreach fname in=$fnames do={
     #--------------------------------------------------------------
@@ -17,7 +19,9 @@ foreach fname in=$fnames do={
 }
 
 #remove legacy libs if installed
+
 local fnames {"HassioLib_JsonEscape";"HassioLib_JsonPick"}
+
 
 foreach fname in=$fnames do={
     #--------------------------------------------------------------
@@ -28,7 +32,9 @@ foreach fname in=$fnames do={
     #--------------------------------------------------------------
 }
 
+
 put "Functions"
+
     #--------------------------------------------------------------
 local deploy do={
     put "installing: $fname"
@@ -85,6 +91,21 @@ if ([system/package/find name=gps and disabled=no]) do={
     local policy "read,test"
 
     $deploy fname=$fname interval=$interval policy=$policy
+}
+
+if ([/system/package/find where name=ups and disabled=no]) do={
+    if ([[:parse "len [/system/ups/find ]"]]>0) do={
+        :put "UPS found"
+        :local fname "HassioSensorUpsDevicePublish"
+        :local interval "0s"
+        :local policy "read,test"
+        $deploy fname=$fname interval=$interval policy=$policy
+
+        :local fname "HassioSensorUpsStatePublish"
+        :local interval "1m"
+        :local policy "read,test"
+        $deploy fname=$fname interval=$interval policy=$policy
+    }
 }
 
 if (!([/system/resource/get board-name ]~"^CHR")) do={
