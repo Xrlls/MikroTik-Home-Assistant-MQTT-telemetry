@@ -62,5 +62,24 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 }
             }
         }
+
+        #-------------------------------------------------------
+        #Handle NB/CAT-M interfaces
+        #-------------------------------------------------------
+        /interface/ppp-client/
+        :foreach i in=[find] do={
+            :local upd [firmware-upgrade $i as-value]
+            :local inf
+            :if (($upd->"status")!="Failed!") do={
+                :do {:set  inf [info $i once as-value]} on-error={}
+            }
+            :if ([:len $inf]!=0) do={
+                :if (($inf->"model")~"AT\\+GMM") do={
+                    :set ($inf->"model") [:pick ($inf->"model") 6 [:len ($inf->"model")]];
+                    #:put "AT command"
+                }
+                $buildconfig name=($inf->"model") discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            }
+        }        
     }
 }
