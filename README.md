@@ -8,6 +8,25 @@ The script monitors updates for RouterOS, RouterBOARD firmware, and any MikroTik
 
 If webfig is enabled, a bridge interface with an IP address, and optionally a static DNS entry for the address is created, a configuration link is shown in Home Assistant.
 
+### Firmware update notifications
+The script currently provides firmware update notifications for the following subsystems:
+- RouterOS
+- RouterBOARD (firmware)
+- LTE modems
+- NB/CAT-M modems (PPP attached)
+
+### Health sensors
+The script currently creates sensors in Home Assistant for whichever health sensors the routerboard has, typically voltage and temperature.
+
+### Device Tracker (GPS/GNSS)
+The script can report the Routerboards position to Home Assistant if equipped with a GPS/GNSS receiver.
+
+### PoE monitoring
+The script reports the current consumption on each PoE enabled port to Home Assistant.
+
+### UPS monitoring
+The script currently reports various telemetry from connected UPS. The documentation from Mikrotik is lacking a bit, so your milage may vary. If seeing issues, reach out, and I will see what I can do.
+
 ## Security concerns
 
 To reduce the attack surface for the router, these scripts do not subscribe to any topics on the MQTT server, hence it cannot be controlled from Home Assistant through these scripts.
@@ -20,6 +39,7 @@ I have tested it on various MikroTik devices I have available:
 - CHR
 - SXTsq Lite2
 - L009UiGS-2HaxD-IN
+- KNOT LR8 aka. KNOT R
 
 I will happily test on any other devices you might want to gift me :)
 
