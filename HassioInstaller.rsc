@@ -49,16 +49,18 @@ local deploy do={
         #put [/system/script/get $index name]
         system/script/set $index policy=$policy source=$source
     }
-    system/script/run $fname
-    local index [/system/scheduler/find name=$fname]
-    if ( [len $index] =0) do={
-        /system scheduler/add interval=$interval name=$fname on-event=$fname policy=\
-        $policy start-date=2023-09-25 start-time=startup
-    } else={
-        #put [/system/script/get $index name]
-        /system scheduler/set $index interval=$interval on-event=$fname policy=\
-        $policy start-date=2023-09-25 start-time=startup
-    }
+    if (!([:typeof $interval]="nothing")) do={
+        system/script/run $fname
+        local index [/system/scheduler/find name=$fname]
+        if ( [len $index] =0) do={
+            /system scheduler/add interval=$interval name=$fname on-event=$fname policy=\
+            $policy start-date=2023-09-25 start-time=startup
+        } else={
+            #put [/system/script/get $index name]
+            /system scheduler/set $index interval=$interval on-event=$fname policy=\
+            $policy start-date=2023-09-25 start-time=startup
+        }
+    } else={:put "   Not setting scheduler"}
 }
 
 local fname "HassioFirmwareEntityPublish"
@@ -107,6 +109,21 @@ if ([/system/package/find where name=ups and disabled=no]) do={
         $deploy fname=$fname interval=$interval policy=$policy
     }
 }
+
+if ([/system/package/find where name=iot and disabled=no]) do={
+    if ([[:parse ":len [/iot/bluetooth/find]"]]>0) do={
+        :put "Bluetooth support found"
+        :local fname "HassioLib_BluetoothBeaconEntityPublish"
+        :local policy ""
+        $deploy fname=$fname policy=$policy
+
+        :local fname "HassioBluetoothBeaconStatePublish"
+        :local interval "15s"
+        :local policy "read,,write,policy,test"
+        $deploy fname=$fname interval=$interval policy=$policy
+    }
+}
+
 
 if (!([/system/resource/get board-name ]~"^CHR")) do={
     if ([[:parse "[len [/system/health/find]]"]] >0) do={
