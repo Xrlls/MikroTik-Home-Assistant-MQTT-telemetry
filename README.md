@@ -29,13 +29,16 @@ The script adds Home Assistant Support for MikroTik Bluetooth beacons. It perfor
 The device tracker uses GNSS positional data for the registered trackers if the MikroTik device has a. valid GPS position available, otherwise, the device is registered as `home` when in range.
 The binary sensors on the MikroTik Bluetooth beacons are disabled by default from the factory, so no events will be showing in Home Assistant before they have been enabled using the companion app.
 
->[!IMPORTANT] Prerequisites
+>[!IMPORTANT]
+>Prerequisites
 >- The beacons must be running in MikroTik format, and encryption must not be enabled.
 >- The MikroTik router must be running 7.16 or newer.
 
->[!CAUTION] To reduce processor load on the MikroTik router, the script clears the list of received advertisements on each run to reduce the number of frames that need to be processed. If running other scripts that rely on the Bluetooth scanning this may be an issue.
+>[!CAUTION]
+>To reduce processor load on the MikroTik router, the script clears the list of received advertisements on each run to reduce the number of frames that need to be processed. If running other scripts that rely on the Bluetooth scanning this may be an issue.
 
->[!TIP] To further reduce processor load, consider adding a whitelist >policy similar to this:
+>[!TIP]
+>To further reduce processor load, consider adding a whitelist >policy similar to this:
 >```
 >/iot bluetooth scanners
 >set bt1 disabled=no filter-policy=whitelist
