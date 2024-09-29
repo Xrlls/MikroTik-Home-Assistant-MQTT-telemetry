@@ -38,7 +38,7 @@ The binary sensors on the MikroTik Bluetooth beacons are disabled by default fro
 >To reduce processor load on the MikroTik router, the script clears the list of received advertisements on each run to reduce the number of frames that need to be processed. If running other scripts that rely on the Bluetooth scanning this may be an issue.
 
 >[!TIP]
->To further reduce processor load, consider adding a whitelist >policy similar to this:
+>To further reduce processor load, consider adding a whitelist policy similar to this:
 >```
 >/iot bluetooth scanners
 >set bt1 disabled=no filter-policy=whitelist
