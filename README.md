@@ -24,8 +24,32 @@ The script can report the Routerboards position to Home Assistant if equipped wi
 ### PoE monitoring
 The script reports the current consumption on each PoE enabled port to Home Assistant.
 
+### Bluetooth Beacons
+The script adds Home Assistant Support for MikroTik Bluetooth beacons. It performs decoding of the beacon payload server side on Home Assistant, and adds device tracker functionality, registering whenever the device is present.
+The device tracker uses GNSS positional data for the registered trackers if the MikroTik device has a. valid GPS position available, otherwise, the device is registered as `home` when in range.
+The binary sensors on the MikroTik Bluetooth beacons are disabled by default from the factory, so no events will be showing in Home Assistant before they have been enabled using the companion app.
+
+>[!IMPORTANT]
+> Prerequisites
+>- The beacons must be running in MikroTik format, and encryption must not be enabled.
+>- The MikroTik router must be running 7.16 or newer.
+
+>[!CAUTION]To reduce processor load on the MikroTik router, the script clears the list of received advertisements on each run to reduce the number of frames that need to be processed. If running other scripts that rely on the Bluetooth scanning this may be an issue.
+
+>[!TIP]To further reduce processor load, consider adding a whitelist >policy similar to this:
+>```
+>/iot bluetooth scanners
+>set bt1 disabled=no filter-policy=whitelist
+>/iot bluetooth whitelist
+>add address=D4:*:*:*:*:* address-type=public device=bt1
+>add address=18:fd:*:*:*:* address-type=public device=bt1
+>```
+>The TG-BT5-OUT used for testing had a MAC beginning with `D4`, and the TG-BT5-IN used for testing was testing was starting with `18:FD`, but your mileage may vary.
+
 ### UPS monitoring
-The script currently reports various telemetry from connected UPS. The documentation from Mikrotik is lacking a bit, so your milage may vary. If seeing issues, reach out, and I will see what I can do.
+The script currently reports various telemetry from connected UPS.
+This has only been tested with a APC Back-UPS BX950, and the data it provides is not extensive compared to what the MikroTik documentation lists.
+The documentation from Mikrotik is also lacking a bit, so your milage may vary. If seeing issues, reach out, and I will see what I can do.
 
 ## Security concerns
 
@@ -57,17 +81,16 @@ The details of this is not covered in this guide.
 The IOT packages needs to be installed. The installation is not covered in this guide.
 
 When the package is installed, a connection needs to be configured to Home Assistant.
-
-    /iot mqtt brokers
-    add address=<MQTT server IP> auto-connect=yes name="Home Assistant" password=<password> username=<username>
-
-I have found that this only works with IPv4 addresses. I have not had luck with IPv6 or domain names.
+```
+/iot mqtt brokers add address=<MQTT server IP> auto-connect=yes name="Home Assistant" password=<password> username=<username>
+```
+I have found that this only works with IPv4 addresses and domain names. I have not had luck with IPv6.
 
 The scripts currently depends on the name of the broker being `Home Assistant`. `auto-connect` is set to `yes` as the scripts do not handle setting up the initial connection themselves.
 
 
 ### Script Installation
 Run the command below from the terminal:
-
-    [[:parse ([/tool/fetch https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioInstaller.rsc output=user as-value ]->"data")]]
-
+```
+[[:parse ([/tool/fetch https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/HassioInstaller.rsc output=user as-value ]->"data")]]
+```
