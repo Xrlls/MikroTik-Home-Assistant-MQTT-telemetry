@@ -45,7 +45,7 @@
         :local sensorconfig
         :set ($sensorconfig->"sug_dsp_prc") 2
         :set ($sensorconfig->"unit_of_meas") "m/s\C2\B2"
-        :set ($sensorconfig->"exp_aft") 70
+#        :set ($sensorconfig->"exp_aft") 70
         #X
         :set ($sensorconfig->"name") "Acceleration X"
         :set ($sensorconfig->"obj_id") "acc_x"
@@ -73,7 +73,7 @@
         :set ($sensorconfig->"obj_id") "temp"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 1
         :set ($sensorconfig->"unit_of_meas") "\C2\B0\43"
-        :set ($sensorconfig->"exp_aft") 70
+#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "temperature"
         :set ($sensorconfig->"val_tpl") "{% set t= int(value_json.data[30:32] + value_json.data[28:30],base=16)%}{% if t>0x7fff%}{% set t=t-0x10000%}{%endif%}{{t/256}}"
         $postdata $sensorconfig $device "sensor"
@@ -85,7 +85,7 @@
         :set ($sensorconfig->"obj_id") "uptime"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 1
         :set ($sensorconfig->"unit_of_meas") "min"
-        :set ($sensorconfig->"exp_aft") 70
+#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "duration"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") "{{ int(value_json.data[38:40] + value_json.data[36:38] + value_json.data[34:36] + value_json.data[32:34],base=16)/60}}"
@@ -98,7 +98,7 @@
         :set ($sensorconfig->"obj_id") "rssi"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 0
         :set ($sensorconfig->"unit_of_meas") "dB"
-        :set ($sensorconfig->"exp_aft") 70
+#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "signal_strength"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") ("{{ value_json.rssi | is_defined }}")
@@ -123,7 +123,7 @@
         :set ($sensorconfig->"obj_id") "battery"
         :set ($sensorconfig->"sug_dsp_prc") 0
         :set ($sensorconfig->"unit_of_meas") "%"
-        :set ($sensorconfig->"exp_aft") 70
+#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "battery"
         :set ($sensorconfig->"val_tpl") "{{int(value_json.data[42:44],base=16) }}"
         $postdata $sensorconfig $device "sensor"
@@ -135,7 +135,7 @@
         :set ($sensorconfig->"name") "Impact X"
         :set ($sensorconfig->"obj_id") "imp_x"
         :set ($sensorconfig->"en") false
-        :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x08))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
+        :set ($sensorconfig->"val_tpl") "{%if value_json.data is defined%}{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x08))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-x-arrow"
         $postdata $sensorconfig $device "binary_sensor"
         }
@@ -145,7 +145,7 @@
         :set ($sensorconfig->"name") "Impact Y"
         :set ($sensorconfig->"obj_id") "imp_y"
         :set ($sensorconfig->"en") false
-        :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[40:41],base=16) | bitwise_and(0x01))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
+        :set ($sensorconfig->"val_tpl") "{%if value_json.data is defined%}{% if((int(value_json.data[40:41],base=16) | bitwise_and(0x01))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-y-arrow"
         $postdata $sensorconfig $device "binary_sensor"
         }
@@ -155,7 +155,7 @@
         :set ($sensorconfig->"name") "Impact Z"
         :set ($sensorconfig->"obj_id") "imp_z"
         :set ($sensorconfig->"en") false
-        :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[40:41],base=16) | bitwise_and(0x02))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
+        :set ($sensorconfig->"val_tpl") "{%if value_json.data is defined%}{% if((int(value_json.data[40:41],base=16) | bitwise_and(0x02))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-z-arrow"
         $postdata $sensorconfig $device "binary_sensor"
         }
@@ -165,7 +165,7 @@
         :set ($sensorconfig->"name") "Free fall"
         :set ($sensorconfig->"obj_id") "freefall"
         :set ($sensorconfig->"en") false
-        :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x04))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
+        :set ($sensorconfig->"val_tpl") "{%if value_json.data is defined%}{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x04))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:arrow-down-bold-box-outline"
         $postdata $sensorconfig $device "binary_sensor"
         }
@@ -175,7 +175,7 @@
         :set ($sensorconfig->"name") "Tilt"
         :set ($sensorconfig->"obj_id") "Tilt"
         :set ($sensorconfig->"en") false
-        :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x02))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
+        :set ($sensorconfig->"val_tpl") "{%if value_json.data is defined%}{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x02))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:spirit-level"
         $postdata $sensorconfig $device "binary_sensor"
         }
@@ -184,7 +184,7 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Switch"
         :set ($sensorconfig->"obj_id") "Switch"
-        :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x01))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
+        :set ($sensorconfig->"val_tpl") "{%if value_json.data is defined%}{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x01))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:magnet-on"
         
         $postdata $sensorconfig $device "binary_sensor"
