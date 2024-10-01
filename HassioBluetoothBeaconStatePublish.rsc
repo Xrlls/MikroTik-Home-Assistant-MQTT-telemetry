@@ -16,22 +16,22 @@
     :local site "home"
     #Check if away message should be published.
     :if ([:len $4]=0) do={;#No data, publish away
-        :log info "HassioBtrack: Publishing away message"
+        :log debug "HassioBtrack: $1 Publishing away message"
         :set ($out->"last_seen") ($HassioKnownBT->$1->"tsi")
         :set $site "not_home"
         :set ($HassioKnownBT->$1)
         /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/sensor/$dtopic/state"\
-            message=[:serialize $out to=json]
-        /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/device_tracker/$dtopic/state" message=$site
-        /log info "BTRACK: state sent"
+            message=[:serialize $out to=json] retain=yes
+        /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/device_tracker/$dtopic/state" message=$site retain=yes
+        /log debug "HassioBtrack: $1 state sent"
     } else={;#Data included, publish normal
         #Check if device is known
         :if ([:typeof ($HassioKnownBT->$1->"ts")]="nothing") do={; #Device is unknown
             :set ($HassioKnownBT->$1->"ts") 0s;
             :local temp true
-            if ([:pick $4 28 32]="0080") do={:set temp false; log info "HassioBTRACK: Found beacon without thermometer"}
+            if ([:pick $4 28 32]="0080") do={:set temp false; log debug "HassioBtrack: $1 Found beacon without thermometer"}
             $PublishEntities $1 $temp
-            :log info  "BTRACK: unknown device, reset TS";#set timestamp to start of epoch if nonexistent
+            :log debug "HassioBtrack: $1 unknown device, reset TS";#set timestamp to start of epoch if nonexistent
         }
         :if ($TimeStamp>($HassioKnownBT->$1->"ts")) do={;# Message is newer than last published
             :set ($HassioKnownBT->$1->"state") [ :pick $4 40 42]
@@ -49,17 +49,18 @@
                     :set ($out->"longitude") ($pos->"longitude")
                     :set $site "hassio_gps_derive"
                 }
-            } on-error={:log info "HassioBTRACK: GNSS unavailable, not publishing coordinates"}
+            } on-error={:log debug "HassioBtrack: GNSS unavailable, not publishing coordinates"}
         /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/sensor/$dtopic/state"\
             message=[:serialize $out to=json]
         /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/device_tracker/$dtopic/state" message=$site
-        /log info "HassioBTRACK: state sent"
+        /log debug "HassioBtrack: $1 state sent"
         }
     };# else={log info "BTRACK: Discarded due to timestamp being older or identical"}    
 }
 #----------------------
 #Process all messages in case of captured events
 #----------------------
+:log debug "HassioBtrack: Started"
 /iot/bluetooth/scanners/advertisements
 :local BeaconData [print proplist=address,rssi,time,data as-value where data~"^..ff4f0901"]
 clear; #What happens with frames received between print and clear
@@ -67,9 +68,9 @@ clear; #What happens with frames received between print and clear
 :foreach beacon in=$BeaconData do={
     :local State [ :pick ($beacon->"data") 40 42]
     :if ($State!=($HassioKnownBT->($beacon->"address")->"state")) do={ ; #Check if state has changed
-        :log info "BTRACK: changed state, move to transmit..."
+        :log debug ("HassioBtrack: ".($beacon->"address")." changed state, move to transmit...")
         $PublishState ($beacon->"address") ($beacon->"time") ($beacon->"rssi") ($beacon->"data")
-    } else={:log info "BTRACK: Discarded due to no change in state"}
+    } else={:log debug ("HassioBtrack: ".($beacon->"address")." Discarded due to no change in state")}
 }
 
 #----------------------
@@ -88,11 +89,11 @@ clear; #What happens with frames received between print and clear
 #----------------------
 :foreach beacon,data in=$HassioKnownBT do={
     :if (($data->"ts")<([:timestamp]-1m)) do={
-        :log info "BTRACK: Device $beacon not seen within timeout. Publish \"away\" and remove from known list."
+        :log debug "HassioBtrack: $beacon not seen within timeout. Publish \"away\" and remove from known list."
         #Publish away message
         $PublishState $beacon
     } else={
-        :log info "BTRACK: Device seen within timeout, moving on..."
+        :log debug "HassioBtrack: $beacon seen within timeout, moving on..."
     }
 
 }

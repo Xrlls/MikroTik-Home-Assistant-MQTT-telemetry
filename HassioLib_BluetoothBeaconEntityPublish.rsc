@@ -6,10 +6,16 @@
                             [:pick ($2->"dev"->"cns"->0->1) 6 8].[:pick ($2->"dev"->"cns"->0->1) 9 11].\
                             [:pick ($2->"dev"->"cns"->0->1) 12 14].[:pick ($2->"dev"->"cns"->0->1) 15 17])]
             :local pd ($1,$2)
-#            :if ($3="sensor") do={:set ($pd->"exp_aft") 70}
+            :if (($3="sensor") and !(($1->"dev_cla")="timestamp")) do={:set ($pd->"exp_aft") 70}
+            :set ($pd->"~") ($discoverypath."sensor/".$dtopic."/state")
+            :set ($pd->"avty_t") "~"
+            :if ([:typeof ($1->"avty_tpl")]="nothing") do={
+                :set ($pd->"avty_tpl") "{%if value_json.data is defined%}{{'online'}}{%else%}{{'offline'}}{%endif%}"
+            }
             :set ($pd->"obj_id") ($dtopic."_".($1->"obj_id"))
             :set ($pd->"uniq_id") ($pd->"obj_id")
-            :set ($pd->"stat_t") ($discoverypath."sensor/".$dtopic."/state")
+#            :set ($pd->"stat_t") ($discoverypath."sensor/".$dtopic."/state")
+            :set ($pd->"stat_t") "~"
             /iot/mqtt/publish broker="Home Assistant"\
                 topic=($discoverypath.$3."/".$dtopic."/".($1->"obj_id")."/config")\
                 message=[:serialize $pd to=json]\
@@ -70,7 +76,6 @@
         :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "temperature"
         :set ($sensorconfig->"val_tpl") "{% set t= int(value_json.data[30:32] + value_json.data[28:30],base=16)%}{% if t>0x7fff%}{% set t=t-0x10000%}{%endif%}{{t/256}}"
-#        :set ($sensorconfig->"val_tpl") "{{int(value_json.data[30:32] + value_json.data[28:30],base=16)}}"
         $postdata $sensorconfig $device "sensor"
         }
         #Uptime
@@ -82,6 +87,7 @@
         :set ($sensorconfig->"unit_of_meas") "min"
         :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "duration"
+        :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") "{{ int(value_json.data[38:40] + value_json.data[36:38] + value_json.data[34:36] + value_json.data[32:34],base=16)/60}}"
         $postdata $sensorconfig $device "sensor"
         }
@@ -96,6 +102,7 @@
         :set ($sensorconfig->"dev_cla") "signal_strength"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") ("{{ value_json.rssi | is_defined }}")
+        :set ($sensorconfig->"avty_tpl") "{%if value_json.rssi is defined%}{{'online'}}{%else%}{{'offline'}}{%endif%}"
         $postdata $sensorconfig $device "sensor"
         }
         #Timestamp
@@ -104,7 +111,9 @@
         :set ($sensorconfig->"name") "Last seen"
         :set ($sensorconfig->"obj_id") "last_seen"                                                               
         :set ($sensorconfig->"dev_cla") "timestamp"
+        :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") ("{{ value_json.last_seen | is_defined }}")
+        :set ($sensorconfig->"avty_tpl") "{%if value_json.last_seen is defined%}{{'online'}}{%else%}{{'offline'}}{%endif%}"
         $postdata $sensorconfig $device "sensor"
         }
         #Battery
@@ -125,6 +134,7 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Impact X"
         :set ($sensorconfig->"obj_id") "imp_x"
+        :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x08))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-x-arrow"
         $postdata $sensorconfig $device "binary_sensor"
@@ -134,6 +144,7 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Impact Y"
         :set ($sensorconfig->"obj_id") "imp_y"
+        :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[40:41],base=16) | bitwise_and(0x01))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-y-arrow"
         $postdata $sensorconfig $device "binary_sensor"
@@ -143,6 +154,7 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Impact Z"
         :set ($sensorconfig->"obj_id") "imp_z"
+        :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[40:41],base=16) | bitwise_and(0x02))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-z-arrow"
         $postdata $sensorconfig $device "binary_sensor"
@@ -152,6 +164,7 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Free fall"
         :set ($sensorconfig->"obj_id") "freefall"
+        :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x04))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:arrow-down-bold-box-outline"
         $postdata $sensorconfig $device "binary_sensor"
@@ -161,6 +174,7 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Tilt"
         :set ($sensorconfig->"obj_id") "Tilt"
+        :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "{% if((int(value_json.data[41:42],base=16) | bitwise_and(0x02))|bool)%}{{'ON'}}{%else%}{{'OFF'}}{%endif%}"
         :set ($sensorconfig->"ic") "mdi:spirit-level"
         $postdata $sensorconfig $device "binary_sensor"
@@ -186,10 +200,11 @@
                         [:pick ($device->"dev"->"cns"->0->1) 12 14].[:pick ($device->"dev"->"cns"->0->1) 15 17])]
         :set ($sensorconfig->"obj_id") ($dtopic."_".($sensorconfig->"obj_id"))
         :set ($sensorconfig->"uniq_id") ($sensorconfig->"obj_id")
-        :set ($sensorconfig->"stat_t") ($discoverypath."device_tracker/".$dtopic."/state")
+        :set ($sensorconfig->"~") $discoverypath
+        :set ($sensorconfig->"stat_t") ("~device_tracker/".$dtopic."/state")
         :set ($sensorconfig->"pl_rst") "hassio_gps_derive"
         :set ($sensorconfig->"src_type") "bluetooth"
-        :set ($sensorconfig->"json_attr_t") ($discoverypath."sensor/".$dtopic."/state")
+        :set ($sensorconfig->"json_attr_t") ("~sensor/".$dtopic."/state")
         /iot/mqtt/publish broker="Home Assistant"\
             topic=($discoverypath."device_tracker/".$dtopic."/config")\
             message=[:serialize $sensorconfig to=json] retain=yes
