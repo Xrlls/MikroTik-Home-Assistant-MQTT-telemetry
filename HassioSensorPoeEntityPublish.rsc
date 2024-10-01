@@ -26,13 +26,16 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
            local entity
             set ($entity->"dev") $dev
             set ($entity->"name") ("$name"." POE")
-            set ($entity->"stat_t") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/state$NamePostfix")
+            set ($entity->"~") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/state$NamePostfix")
+            set ($entity->"stat_t") "~"
+            set ($entity->"avty_t") "~"
             set ($entity->"uniq_id") (($entity->"dev"->"ids")."_$name$NamePostfix")
             set ($entity->"obj_id") ($entity->"uniq_id")
             set ($entity->"sug_dsp_prc") 1
             set ($entity->"unit_of_meas") $unit
             set ($entity->"dev_cla") "power"
-            set ($entity->"val_tpl") "{%if value_json.$jsonname | is_defined%}{{value_json.$jsonname/10}}{%else%}{{0}}{%endif%}"
+            set ($entity->"val_tpl") "{%if value_json.$jsonname is defined%}{{value_json.$jsonname/10}}{%else%}{{0}}{%endif%}"
+            set ($entity->"avty_tpl") "{%if value_json.$jsonname is defined%}{{'online'}}{%else%}{{'offline'}}{%endif%}"
             set ($entity->"exp_aft") 70
             /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
                 topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name$NamePostfix/config") retain=yes        
