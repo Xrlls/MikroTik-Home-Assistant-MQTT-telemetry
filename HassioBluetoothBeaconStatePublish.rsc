@@ -1,12 +1,10 @@
 :global HassioKnownBT
-
+:global HassioBtTimeStamp
 #----------------------
 # Publish tracker state
 #----------------------
 :local PublishState do={       
-    :global HassioKnownBT
-    :local PublishEntities [:parse [/system/script/get HassioLib_BluetoothBeaconEntityPublish source ]]
-    :local TimeStamp ([:totime $2]-([/system/clock/get gmt-offset]."s")) ;#Convert timmestamp to GMT. This will be toxic around daylight savings
+    :global HassioKnownBT    
     #Prepare common data 
     :local dtopic [([:pick $1 -1 2].[:pick $1 3 5].\
                     [:pick $1 6 8].[:pick $1 9 11].\
@@ -27,16 +25,17 @@
     } else={;#Data included, publish normal
         #Check if device is known
         :if ([:typeof ($HassioKnownBT->$1->"ts")]="nothing") do={; #Device is unknown
-            :set ($HassioKnownBT->$1->"ts") 0s;
+            :set ($HassioKnownBT->$1->"ts") 0;
             :local temp true
             if ([:pick $4 28 32]="0080") do={:set temp false; log debug "HassioBtrack: $1 Found beacon without thermometer"}
+            :local PublishEntities [:parse [/system/script/get HassioLib_BluetoothBeaconEntityPublish source ]]
             $PublishEntities $1 $temp
             :log debug "HassioBtrack: $1 unknown device, reset TS";#set timestamp to start of epoch if nonexistent
         }
-        :if ($TimeStamp>($HassioKnownBT->$1->"ts")) do={;# Message is newer than last published
+
+       :if ($5>($HassioKnownBT->$1->"ts")) do={;# Message is newer than last published
             :set ($HassioKnownBT->$1->"state") [ :pick $4 40 42]
-            :set ($HassioKnownBT->$1->"ts") $TimeStamp
-      
+            :set ($HassioKnownBT->$1->"ts") $5
             :set ($out->"last_seen") ($2.[/system/clock/get gmt-offset as-string])
             :set ($HassioKnownBT->$1->"tsi") ($out->"last_seen")
             :set ($out->"rssi") $3
@@ -57,38 +56,49 @@
         }
     };# else={log info "BTRACK: Discarded due to timestamp being older or identical"}    
 }
+
+#----------------------
+#Initialize TimeStamp on first run
+#----------------------
+:if ([:typeof $HassioBtTimeStamp]="nothing") do={:set $HassioBtTimeStamp 0}
+
 #----------------------
 #Process all messages in case of captured events
 #----------------------
 :log debug "HassioBtrack: Started"
 /iot/bluetooth/scanners/advertisements
-:local BeaconData [print proplist=address,rssi,time,data as-value where data~"^..ff4f0901"]
-clear; #What happens with frames received between print and clear
+:local FrameCache
+:local BeaconData [print proplist=address,rssi,time,data,epoch as-value where epoch>$HassioBtTimeStamp and data~"^..ff4f0901"]
 
 :foreach beacon in=$BeaconData do={
+    :set $HassioBtTimeStamp ($beacon->"epoch")
     :local State [ :pick ($beacon->"data") 40 42]
     :if ($State!=($HassioKnownBT->($beacon->"address")->"state")) do={ ; #Check if state has changed
         :log debug ("HassioBtrack: ".($beacon->"address")." changed state, move to transmit...")
-        $PublishState ($beacon->"address") ($beacon->"time") ($beacon->"rssi") ($beacon->"data")
-    } else={:log debug ("HassioBtrack: ".($beacon->"address")." Discarded due to no change in state")}
+        $PublishState ($beacon->"address") ($beacon->"time") ($beacon->"rssi") ($beacon->"data") ($beacon->"epoch")
+        :set ($FrameCache->($beacon->"address"))
+    } else={
+        :log debug ("HassioBtrack: ".($beacon->"address")." Cached due to no change in state")
+        :set ($FrameCache->($beacon->"address")) $beacon
+    }
 }
-
 #----------------------
 #Process latest message
 #----------------------
-/iot/bluetooth/peripheral-devices
-:foreach beacon in=[find beacon-types="mikrotik"] do={
-    :local state [get $beacon]
-    :if (($state->"last-data")~"^..FF4F0901") do={
-         $PublishState ($state->"address") ($state->"last-seen") ($state->"rssi") ($state->"last-data")
-    }
+:foreach beacon in=$FrameCache do={
+    :log debug ("HassioBtrack: ".($beacon->"address")." Cached frame, move to transmit...")
+:put ($beacon->"epoch")
+:put [:typeof ($beacon->"epoch")]
+    $PublishState ($beacon->"address") ($beacon->"time") ($beacon->"rssi") ($beacon->"data") ($beacon->"epoch")
+    :set ($FrameCache->($beacon->"address"))
+    
 }
 
 #----------------------
 #Publish away location for all devices not seen lately
 #----------------------
 :foreach beacon,data in=$HassioKnownBT do={
-    :if (($data->"ts")<([:timestamp]-1m)) do={
+    :if (($data->"ts")<([:tonum ([:timestamp])]-60)*1000) do={
         :log debug "HassioBtrack: $beacon not seen within timeout. Publish \"away\" and remove from known list."
         #Publish away message
         $PublishState $beacon
@@ -97,4 +107,3 @@ clear; #What happens with frames received between print and clear
     }
 
 }
-
