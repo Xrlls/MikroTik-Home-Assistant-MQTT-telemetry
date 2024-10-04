@@ -27,34 +27,31 @@
         :if ([:typeof ($HassioKnownBT->$1->"ts")]="nothing") do={; #Device is unknown
             :set ($HassioKnownBT->$1->"ts") 0;
             :local temp true
-            if ([:pick $4 28 32]="0080") do={:set temp false; log debug "HassioBtrack: $1 Found beacon without thermometer"}
+            :if ([:pick $4 28 32]="0080") do={:set temp false; log debug "HassioBtrack: $1 Found beacon without thermometer"}
             :local PublishEntities [:parse [/system/script/get HassioLib_BluetoothBeaconEntityPublish source ]]
             $PublishEntities $1 $temp
             :log debug "HassioBtrack: $1 unknown device, reset TS";#set timestamp to start of epoch if nonexistent
         }
-
-       :if ($5>($HassioKnownBT->$1->"ts")) do={;# Message is newer than last published
-            :set ($HassioKnownBT->$1->"state") [ :pick $4 40 42]
-            :set ($HassioKnownBT->$1->"ts") $5
-            :set ($out->"last_seen") ($2.[/system/clock/get gmt-offset as-string])
-            :set ($HassioKnownBT->$1->"tsi") ($out->"last_seen")
-            :set ($out->"rssi") $3
-            :set ($out->"data") $4
-            #Set GNSS coordinates
-            do {
-                :local pos [[:parse "/system/gps monitor once as-value"]]
-                :if ($pos->"valid") do={
-                    :set ($out->"latitude") ($pos->"latitude")
-                    :set ($out->"longitude") ($pos->"longitude")
-                    :set $site "hassio_gps_derive"
-                }
-            } on-error={:log debug "HassioBtrack: GNSS unavailable, not publishing coordinates"}
+        :set ($HassioKnownBT->$1->"state") [ :pick $4 40 42]
+        :set ($HassioKnownBT->$1->"ts") $5
+        :set ($out->"last_seen") ($2.[/system/clock/get gmt-offset as-string])
+        :set ($HassioKnownBT->$1->"tsi") ($out->"last_seen")
+        :set ($out->"rssi") $3
+        :set ($out->"data") $4
+        #Set GNSS coordinates
+        do {
+            :local pos [[:parse "/system/gps monitor once as-value"]]
+            :if ($pos->"valid") do={
+                :set ($out->"latitude") ($pos->"latitude")
+                :set ($out->"longitude") ($pos->"longitude")
+                :set $site "hassio_gps_derive"
+            }
+        } on-error={:log debug "HassioBtrack: GNSS unavailable, not publishing coordinates"}
         /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/sensor/$dtopic/state"\
             message=[:serialize $out to=json]
         /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/device_tracker/$dtopic/state" message=$site
         /log debug "HassioBtrack: $1 state sent"
-        }
-    };# else={log info "BTRACK: Discarded due to timestamp being older or identical"}    
+    }
 }
 
 #----------------------
