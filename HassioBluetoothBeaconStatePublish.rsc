@@ -10,27 +10,28 @@
                     [:pick $1 6 8].[:pick $1 9 11].\
                     [:pick $1 12 14].[:pick $1 15 17])]
     :set dtopic [:convert $dtopic transform=lc]
+    :local retain false
     :local out
-    :local site "home"
+    :set ($out->"site") "home"
     #Check if away message should be published.
     :if ([:len $4]=0) do={;#No data, publish away
         :log debug "HassioBtrack: $1 Publishing away message"
         :set ($out->"last_seen") ($HassioKnownBT->$1->"tsi")
-        :set $site "not_home"
+        :set ($out->"site") "not_home"
         :set ($HassioKnownBT->$1)
-        /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/sensor/$dtopic/state"\
-            message=[:serialize $out to=json] retain=yes
-        /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/device_tracker/$dtopic/state" message=$site retain=yes
-        /log debug "HassioBtrack: $1 state sent"
+        :set $retain true
     } else={;#Data included, publish normal
         #Check if device is known
         :if ([:typeof ($HassioKnownBT->$1->"ts")]="nothing") do={; #Device is unknown
             :set ($HassioKnownBT->$1->"ts") 0;
+            :log debug "HassioBtrack: $1 unknown device, reset TS";#set timestamp to start of epoch if nonexistent
             :local temp true
-            :if ([:pick $4 28 32]="0080") do={:set temp false; log debug "HassioBtrack: $1 Found beacon without thermometer"}
+            :if ([:pick $4 28 32]="0080") do={
+                :set temp false; 
+                log debug "HassioBtrack: $1 Found beacon without thermometer (TG-BT5-IN)"
+            }
             :local PublishEntities [:parse [/system/script/get HassioLib_BluetoothBeaconEntityPublish source ]]
             $PublishEntities $1 $temp
-            :log debug "HassioBtrack: $1 unknown device, reset TS";#set timestamp to start of epoch if nonexistent
         }
         :set ($HassioKnownBT->$1->"state") [ :pick $4 40 42]
         :set ($HassioKnownBT->$1->"ts") $5
@@ -44,14 +45,13 @@
             :if ($pos->"valid") do={
                 :set ($out->"latitude") ($pos->"latitude")
                 :set ($out->"longitude") ($pos->"longitude")
-                :set $site "hassio_gps_derive"
+                :set ($out->"site") "hassio_gps_derive"
             }
         } on-error={:log debug "HassioBtrack: GNSS unavailable, not publishing coordinates"}
-        /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/sensor/$dtopic/state"\
-            message=[:serialize $out to=json]
-        /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/device_tracker/$dtopic/state" message=$site
-        /log debug "HassioBtrack: $1 state sent"
     }
+    /iot/mqtt/publish broker="Home Assistant" topic="homeassistant/sensor/$dtopic/state"\
+        message=[:serialize $out to=json] retain=$retain
+    /log debug "HassioBtrack: $1 state sent"
 }
 
 #----------------------
@@ -65,9 +65,9 @@
 :log debug "HassioBtrack: Started"
 /iot/bluetooth/scanners/advertisements
 :local FrameCache
-:local BeaconData [print proplist=address,rssi,time,data,epoch as-value where epoch>$HassioBtTimeStamp and data~"^..ff4f0901"]
 
-:foreach beacon in=$BeaconData do={
+:foreach index in=[find epoch>$HassioBtTimeStamp and data~"^..ff4f0901"] do={
+    :local beacon [get $index]
     :set $HassioBtTimeStamp ($beacon->"epoch")
     :local State [ :pick ($beacon->"data") 40 42]
     :if ($State!=($HassioKnownBT->($beacon->"address")->"state")) do={ ; #Check if state has changed
@@ -84,11 +84,8 @@
 #----------------------
 :foreach beacon in=$FrameCache do={
     :log debug ("HassioBtrack: ".($beacon->"address")." Cached frame, move to transmit...")
-:put ($beacon->"epoch")
-:put [:typeof ($beacon->"epoch")]
     $PublishState ($beacon->"address") ($beacon->"time") ($beacon->"rssi") ($beacon->"data") ($beacon->"epoch")
     :set ($FrameCache->($beacon->"address"))
-    
 }
 
 #----------------------

@@ -277,12 +277,12 @@
                         [:pick ($device->"dev"->"cns"->0->1) 12 14].[:pick ($device->"dev"->"cns"->0->1) 15 17])]
         :set ($sensorconfig->"obj_id") ($dtopic."_".($sensorconfig->"obj_id"))
         :set ($sensorconfig->"uniq_id") ($sensorconfig->"obj_id")
-        :set ($sensorconfig->"~") $discoverypath
-        :set ($sensorconfig->"stat_t") ("~device_tracker/".$dtopic."/state")
-#        :set ($sensorconfig->"val_tpl") "{{'{'}}{{value_json}}{{'}'}}"
+        :set ($sensorconfig->"~") ($discoverypath."sensor/".$dtopic."/state")
+        :set ($sensorconfig->"stat_t") "~"
+        :set ($sensorconfig->"val_tpl") "{{value_json.site}}"
         :set ($sensorconfig->"pl_rst") "hassio_gps_derive"
         :set ($sensorconfig->"src_type") "bluetooth"
-        :set ($sensorconfig->"json_attr_t") ("~sensor/".$dtopic."/state")
+        :set ($sensorconfig->"json_attr_t") "~"
         :set ($sensorconfig->"json_attr_tpl") "\
             {%if (value_json.latitude is defined and value_json.longitude is defined)%}\
                 {\"latitude\":{{value_json.latitude}},\"longitude\":{{value_json.longitude}}}\
