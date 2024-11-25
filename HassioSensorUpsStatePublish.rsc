@@ -4,7 +4,11 @@
     :local state [/system/ups/monitor $ups once as-value]
 
     :local stateout
-    :set ($stateout->"on_line") ($state->"on-line")
+    if ($state->"on-line") do={
+        :set ($stateout->"on_line") "ON"
+    } else={
+        :set ($stateout->"on_line") "OFF"
+    }
     :set ($stateout->"battery_charge") ($state->"battery-charge")
     :set ($stateout->"load") ($state->"load")
 
