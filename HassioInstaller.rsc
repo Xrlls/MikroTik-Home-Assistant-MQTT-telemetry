@@ -165,4 +165,40 @@ if (!([/system/resource/get board-name ]~"^CHR")) do={
         put "   POE not supported"
     }
     set PoeInstall
+    #--------------------------------------------------------------
+    put "Checking for GPIO support..."
+    :global GPIOInstall false
+    :onerror error in={
+        [[:parse "/iot/gpio/analog/find"]]
+        :set GPIOInstall ($GPIOInstall or true ) 
+        :put "   Analog supported"
+    } do={}
+    :onerror error in={
+        [[:parse "/iot/gpio/digital/find"]]
+        :set GPIOInstall ($GPIOInstall or true ) 
+        :put "   Digital supported"
+    } do={}
+
+    if ($GPIOInstall=true) do={
+        put "   Installing..."
+    #--------------------------------------------------------------
+        local fname "HassioGPIOEntityPublish"
+        local interval "0s"
+        local policy "read,test"
+
+        $deploy fname=$fname interval=$interval policy=$policy
+    #--------------------------------------------------------------
+        local fname "HassioGPIOStatePublish"
+        local interval "1m"
+        local policy "read,test"
+
+        $deploy fname=$fname interval=$interval policy=$policy
+    #--------------------------------------------------------------
+    #Configure subscriptions for outputs
+    
+    #--------------------------------------------------------------
+    } else={
+        put "   GPIO not supported"
+    }
+    set GPIOInstall
 }

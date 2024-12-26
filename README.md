@@ -45,6 +45,14 @@ The binary sensors on the MikroTik Bluetooth beacons are disabled by default fro
 >```
 >The TG-BT5-OUT used for testing had a MAC beginning with `D4`, and the TG-BT5-IN used for testing was testing was starting with `18:FD`, but your mileage may vary.
 
+### GPIOs
+The script handles both Analog and Digital GPIOs, input and outputs. As GPIOs could be almost anything, they are in this context represented as 
+- Voltmeters for analog inputs
+- Binary sensors for digital inputs
+- Switches for digital outputs
+
+I only have a MikroTik KNOT available with GPIOs, so the support has not been widely tested, and the scripts will fairly certain fail if a device has only analog or digital GPIOs but not both. But I do not know if this config exists on a MikroTik device.
+
 ### UPS monitoring
 The script currently reports various telemetry from connected UPS.
 This has only been tested with a APC Back-UPS BX950, and the data it provides is not extensive compared to what the MikroTik documentation lists.
