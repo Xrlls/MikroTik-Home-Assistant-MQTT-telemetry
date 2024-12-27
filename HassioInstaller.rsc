@@ -195,7 +195,33 @@ if (!([/system/resource/get board-name ]~"^CHR")) do={
         $deploy fname=$fname interval=$interval policy=$policy
     #--------------------------------------------------------------
     #Configure subscriptions for outputs
-    
+    :local code ([/tool/fetch "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/refs/heads/main/HassioGPIOCommandHandle.rsc" output=user as-value]->"data")
+    #:set $code [:convert $code transform=crlf]; #Works from ROS7.17 forward
+
+    :foreach out in=[[:parse "/iot/gpio/digital find direction=output"]] do={
+        :local ntopic ("homeassistant/switch/\
+                    ".[/system/routerboard get serial-number]."/\
+                    command_x".[[:parse "/iot/gpio/digital get $out name"]]."_GPIO")
+        :local subs [/iot/mqtt/subscriptions/find topic=$ntopic]
+        :if ($subs) do={
+            :put "   Subscription found, updating..."
+            :foreach sub in=$subs do={
+            /iot/mqtt/subscriptions set $sub\
+                qos=0\
+                on-message=$code
+            }
+        } else={
+            :put "   subscription not found, creating..."
+            /iot/mqtt/subscriptions add\
+                broker="Home Assistant"\
+                topic=$ntopic\
+                qos=0\
+                on-message=$code
+        }
+    }
+    /iot/mqtt/disconnect broker="Home Assistant"
+    /iot/mqtt/connect broker="Home Assistant" 
+
     #--------------------------------------------------------------
     } else={
         put "   GPIO not supported"
