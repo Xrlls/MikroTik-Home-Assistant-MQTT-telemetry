@@ -25,6 +25,7 @@
         :set ($entity->"sug_dsp_prc") 3
         :set ($entity->"unit_of_meas") "V"
         :set ($entity->"dev_cla") "voltage"
+        :set ($entity->"stat_cla") "measurement"
         :set ($entity->"val_tpl") "{%if value_json.$jsonname is defined%}{{value_json.$jsonname/1000}}{%endif%}"
         :set ($entity->"exp_aft") 70
     }

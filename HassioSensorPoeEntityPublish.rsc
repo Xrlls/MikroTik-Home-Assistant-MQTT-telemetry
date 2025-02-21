@@ -34,6 +34,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             set ($entity->"sug_dsp_prc") 1
             set ($entity->"unit_of_meas") $unit
             set ($entity->"dev_cla") "power"
+            set ($entity->"stat_cla") "measurement"
             set ($entity->"val_tpl") "{%if value_json.$jsonname is defined%}{{value_json.$jsonname/10}}{%else%}{{0}}{%endif%}"
             set ($entity->"avty_tpl") "{%if value_json.$jsonname is defined%}{{'online'}}{%else%}{{'offline'}}{%endif%}"
             set ($entity->"exp_aft") 70

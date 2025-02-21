@@ -78,6 +78,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"sug_dsp_prc") 0
     :set ($sensorconfig->"unit_of_meas") "%"
     :set ($sensorconfig->"dev_cla") "battery"
+    :set ($sensorconfig->"stat_cla") "measurement"
     :set ($sensorconfig->"val_tpl") ("{{ value_json.".($sensorconfig->"obj_id")." | is_defined }}")
     $postdata $sensorconfig $device "sensor"
 
@@ -86,6 +87,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"obj_id") "load"
     :set ($sensorconfig->"sug_dsp_prc") 0
     :set ($sensorconfig->"unit_of_meas") "%"
+    :set ($sensorconfig->"stat_cla") "measurement"
     :set ($sensorconfig->"val_tpl") ("{{ value_json.".($sensorconfig->"obj_id")." | is_defined }}")
     $postdata $sensorconfig $device "sensor"
 
@@ -95,6 +97,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"sug_dsp_prc") 2
     :set ($sensorconfig->"unit_of_meas") "min"
     :set ($sensorconfig->"dev_cla") "duration"
+    :set ($sensorconfig->"stat_cla") "total"
     :set ($sensorconfig->"val_tpl") ("{%if value_json.".($sensorconfig->"obj_id")." | is_defined%}{{value_json.".($sensorconfig->"obj_id")."/60}}{%endif%}")
     $postdata $sensorconfig $device "sensor"
 
@@ -104,6 +107,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"sug_dsp_prc") 1
     :set ($sensorconfig->"unit_of_meas") "V"
     :set ($sensorconfig->"dev_cla") "voltage"
+    :set ($sensorconfig->"stat_cla") "measurement"
     :set ($sensorconfig->"val_tpl") ("{%if value_json.".($sensorconfig->"obj_id")." | is_defined%}{{value_json.".($sensorconfig->"obj_id")."/100}}{%endif%}")
     $postdata $sensorconfig $device "sensor"
 
@@ -113,6 +117,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"sug_dsp_prc") 1
     :set ($sensorconfig->"unit_of_meas") "V"
     :set ($sensorconfig->"dev_cla") "voltage"
+    :set ($sensorconfig->"stat_cla") "measurement"
     :set ($sensorconfig->"val_tpl") ("{%if value_json.".($sensorconfig->"obj_id")." | is_defined%}{{value_json.".($sensorconfig->"obj_id")."/100}}{%endif%}")
     $postdata $sensorconfig $device "sensor"
 

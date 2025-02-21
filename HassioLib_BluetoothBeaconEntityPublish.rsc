@@ -50,6 +50,7 @@
         :local sensorconfig
         :set ($sensorconfig->"sug_dsp_prc") 2
         :set ($sensorconfig->"unit_of_meas") "m/s\C2\B2"
+        :set ($sensorconfig->"stat_cla") "measurement"
 #        :set ($sensorconfig->"exp_aft") 70
         #X
         :set ($sensorconfig->"name") "Acceleration X"
@@ -95,6 +96,7 @@
         :set ($sensorconfig->"unit_of_meas") "\C2\B0\43"
 #        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "temperature"
+        :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"val_tpl") "\
             {% set t= int(value_json.data[30:32] + value_json.data[28:30],base=16)%}\
             {% if t>0x7fff%}\
@@ -112,6 +114,7 @@
         :set ($sensorconfig->"unit_of_meas") "min"
 #        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "duration"
+        :set ($sensorconfig->"stat_cla") "total_increasing"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") "{{ int(value_json.data[38:40] + value_json.data[36:38] + value_json.data[34:36] + value_json.data[32:34],base=16)/60}}"
         $postdata $sensorconfig $device "sensor"
@@ -125,6 +128,7 @@
         :set ($sensorconfig->"unit_of_meas") "dB"
 #        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "signal_strength"
+        :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") ("{{ value_json.rssi | is_defined }}")
         :set ($sensorconfig->"avty_tpl") "\
@@ -160,6 +164,7 @@
         :set ($sensorconfig->"unit_of_meas") "%"
 #        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "battery"
+        :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"val_tpl") "{{int(value_json.data[42:44],base=16) }}"
         $postdata $sensorconfig $device "sensor"
         }
