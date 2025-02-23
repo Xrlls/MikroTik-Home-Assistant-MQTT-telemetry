@@ -1,6 +1,6 @@
 #Install libs
 
-local fnames {"HassioLib_DeviceString";"HassioLib_LowercaseHex";"HassioLib_SearchReplace"}
+local fnames {"HassioLib_DeviceString";"HassioLib_SearchReplace"}
 
 
 foreach fname in=$fnames do={
@@ -20,7 +20,7 @@ foreach fname in=$fnames do={
 
 #remove legacy libs if installed
 
-local fnames {"HassioLib_JsonEscape";"HassioLib_JsonPick"}
+local fnames {"HassioLib_JsonEscape";"HassioLib_JsonPick","HassioLib";"HassioLib_LowercaseHex"}
 
 
 foreach fname in=$fnames do={

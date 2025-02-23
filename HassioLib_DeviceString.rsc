@@ -4,7 +4,6 @@
 #
 local Device
 local hwversion
-local LowercaseHex [parse [system/script/get "HassioLib_LowercaseHex" source]]
 # Get serial
 if (!([/system/resource/get board-name ]~"^CHR")) do={
     set ($Device->"ids") [/system/routerboard get serial-number];#ID
@@ -25,7 +24,7 @@ local index 0
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
     set ($Device->"cns"->$index->0) "mac"
-    set ($Device->"cns"->$index->1) [$LowercaseHex input=[/interface/ethernet/get $iface mac-address]]
+    set ($Device->"cns"->$index->1) [convert transform=lc [/interface/ethernet/get $iface mac-address]]
     set $index ($index+1)
 }
 # Get Wi-Fi MAC addresses
@@ -34,7 +33,7 @@ foreach iface in=[interface/ethernet/find ] do={
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach ciface in=$iface do={
         set ($Device->"cns"->$index->0) "mac"
-        set ($Device->"cns"->$index->1) [$LowercaseHex input=[$Action $ciface]]
+        set ($Device->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
         set $index ($index+1)
     }
 # Get Wi-Fi Wave2 MAC Addresses
@@ -42,7 +41,7 @@ foreach iface in=[interface/ethernet/find ] do={
     local Action [parse "local a [/interface/wifi/radio/get \$1 radio-mac];return \$a"]
     foreach ciface in=$iface do={
         set ($Device->"cns"->$index->0) "mac"
-        set ($Device->"cns"->$index->1) [$LowercaseHex input=[$Action $ciface]]
+        set ($Device->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
         set $index ($index+1)
     }
 
