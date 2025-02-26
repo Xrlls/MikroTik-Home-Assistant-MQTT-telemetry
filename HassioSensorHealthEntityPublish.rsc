@@ -16,8 +16,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         #Build device string
         #-------------------------------------------------------
-        local DeviceString [parse [system/script/get "HassioLib_DeviceString" source]]
-        local dev [$DeviceString]
+        local dev [[parse [system/script/get "HassioLib_DeviceString" source]]]
         local buildconfig do= {
             local SearchReplace [parse [system/script/get "HassioLib_SearchReplace" source]]
             local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
@@ -27,7 +26,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             :set ($devcla->"W") "power"
             #build config for Hassio
             local entity
-            set ($entity->"dev") $dev
+            set $entity ($entity,$dev)
             set ($entity->"name") $name
             set ($entity->"stat_t") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/state")
             set ($entity->"uniq_id") (($entity->"dev"->"ids")."_$name")

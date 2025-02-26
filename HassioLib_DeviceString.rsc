@@ -6,25 +6,25 @@ local Device
 local hwversion
 # Get serial
 if (!([/system/resource/get board-name ]~"^CHR")) do={
-    set ($Device->"ids") [/system/routerboard get serial-number];#ID
-    set ($Device->"sn") ($Device->"ids")
+    set ($Device->"dev"->"ids") [/system/routerboard get serial-number];#ID
+    set ($Device->"dev"->"sn") ($Device->"dev"->"ids")
     set $hwversion [[:parse "[system/routerboard/get revision]"]]
     if ([len $hwversion] >0) do={
-        set ($Device->"hw") $hwversion
+        set ($Device->"dev"->"hw") $hwversion
    }
 } else={
-    set ($Device->"ids") [system/license/get system-id ]
+    set ($Device->"dev"->"ids") [system/license/get system-id ]
 }
-set ($Device->"name") [/system/identity/get name];     #Name
-set ($Device->"mdl") [system/resource/get board-name]; #Mode
-set ($Device->"sw")   [/system/resource/get version ]; #SW
-set ($Device->"mf") [/system/resource/get platform];   #Manufacturer
+set ($Device->"dev"->"name") [/system/identity/get name];     #Name
+set ($Device->"dev"->"mdl") [system/resource/get board-name]; #Mode
+set ($Device->"dev"->"sw")   [/system/resource/get version ]; #SW
+set ($Device->"dev"->"mf") [/system/resource/get platform];   #Manufacturer
 
 local index 0
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
-    set ($Device->"cns"->$index->0) "mac"
-    set ($Device->"cns"->$index->1) [convert transform=lc [/interface/ethernet/get $iface mac-address]]
+    set ($Device->"dev"->"cns"->$index->0) "mac"
+    set ($Device->"dev"->"cns"->$index->1) [convert transform=lc [/interface/ethernet/get $iface mac-address]]
     set $index ($index+1)
 }
 # Get Wi-Fi MAC addresses
@@ -32,16 +32,16 @@ foreach iface in=[interface/ethernet/find ] do={
     :onerror ErrorName in={set iface [[parse "/interface/wireless/ find interface-type!=\"virtual\""]]} do={set iface [:nothing]; log/info message="no wireless"}
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach ciface in=$iface do={
-        set ($Device->"cns"->$index->0) "mac"
-        set ($Device->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
+        set ($Device->"dev"->"cns"->$index->0) "mac"
+        set ($Device->"dev"->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
         set $index ($index+1)
     }
 # Get Wi-Fi Wave2 MAC Addresses
     :onerror ErrorName in={set iface [[parse "/interface/wifiwave2/radio/find"]]} do={set iface [:nothing]; log/info message="no WIFI wave2"}
     local Action [parse "local a [/interface/wifi/radio/get \$1 radio-mac];return \$a"]
     foreach ciface in=$iface do={
-        set ($Device->"cns"->$index->0) "mac"
-        set ($Device->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
+        set ($Device->"dev"->"cns"->$index->0) "mac"
+        set ($Device->"dev"->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
         set $index ($index+1)
     }
 
@@ -68,9 +68,11 @@ if ([len $ipaddress]=0) do={
 
 if ([len $ipaddress] >0) do={
     :if (! [/ip/service/get www-ssl disabled ]) \
-        do={:set ($Device->"cu") "https://$ipaddress/"} \
+        do={:set ($Device->"dev"->"cu") "https://$ipaddress/"} \
     else={if (! [/ip/service/get www disabled]) \
-        do={:set ($Device->"cu") "http://$ipaddress/"}}
+        do={:set ($Device->"dev"->"cu") "http://$ipaddress/"}}
 }
+:set ($Device->"o"->"name") "MikroTik-Home-Assistant-MQTT-telemetry"
+:set ($Device->"o"->"url") "https://github.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry"
 
 return $Device

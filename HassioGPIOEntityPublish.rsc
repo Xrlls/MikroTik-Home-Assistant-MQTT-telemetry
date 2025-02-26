@@ -3,8 +3,7 @@
 #-------------------------------------------------------
 #Build device string
 #-------------------------------------------------------
-:local DeviceString [:parse [system/script/get "HassioLib_DeviceString" source]]
-:local dev [$DeviceString]
+:local dev [[:parse [system/script/get "HassioLib_DeviceString" source]]]
 :local buildconfig do={
     :local SearchReplace [:parse [system/script/get "HassioLib_SearchReplace" source]]
     :local jsonname ("x".[$SearchReplace input=$name search="-" replace="_"])
@@ -12,7 +11,7 @@
 
     #build config for Hassio
     :local entity
-    :set ($entity->"dev") $dev
+    :set $entity ($entity,$dev)
     :set ($entity->"name") $name
     :set ($entity->"~") ($discoverypath."sensor/".($entity->"dev"->"ids")."/")
     :set ($entity->"stat_t") "~state$NamePostfix"
