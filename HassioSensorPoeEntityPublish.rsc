@@ -24,7 +24,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             #build config for Hassio
            local entity
             set $entity ($entity,$dev)
-            set ($entity->"name") ("$name"." POE")
+            set ($entity->"name") ("$iname"." POE")
             set ($entity->"~") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/state$NamePostfix")
             set ($entity->"stat_t") "~"
             set ($entity->"avty_t") "~"
@@ -51,8 +51,9 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name$NamePostfix/config") retain=yes        
         }
         foreach sensor in=[/interface/ethernet/poe/find] do={
-            local name [/interface/ethernet/poe/get $sensor name];#name
-            $buildconfig name=($name) unit=W NamePostfix="_poe" discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            :local iname [/interface/ethernet/poe/get $sensor name];#Friendly name
+            :local dname [/interface/ethernet get [find name=$iname] default-name]
+            $buildconfig name=($dname) iname=$iname unit=W NamePostfix="_poe" discoverypath=$discoverypath domainpath=$domainpath dev=$dev
         }
     }
 }
