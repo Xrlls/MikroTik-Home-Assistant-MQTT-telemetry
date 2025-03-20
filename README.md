@@ -82,8 +82,7 @@ Home Assistant needs to have:
 - The MQTT integration must be installed
 - There must be a connection to (the same) MQTT server as you intend to connect the router to.
 The details of this is not covered in this guide.
->[!NOTE]
->If connecting multiple routers through MQTT, it is very important that they each have a unique `client-id`. If the client IDs are not unique, the broker, such as Mosquitto, will disconnect the clients. The `client-id` is by default `MT`.
+
 ### RouterOS
 The IOT packages needs to be installed. The installation is not covered in this guide.
 
@@ -91,10 +90,16 @@ When the package is installed, a connection needs to be configured to Home Assis
 ```
 /iot mqtt brokers add address=<MQTT server IP> auto-connect=yes name="Home Assistant" password=<password> username=<username>
 ```
-I have found that this only works with IPv4 addresses and domain names. I have not had luck with IPv6.
-
 The scripts currently depends on the name of the broker being `Home Assistant`. `auto-connect` is set to `yes` as the scripts do not handle setting up the initial connection themselves.
 
+I have found that this only works with IPv4 addresses and domain names. I have not had luck with IPv6.
+
+>[!NOTE]
+>If connecting multiple routers through MQTT, it is very important that they each have a unique `client-id`. If the client IDs are not unique, the broker, such as Mosquitto, will disconnect the clients. The `client-id` is by default `MT`.
+>The client ID can be set to the routerboard serial number like this (for non-CHR devices):
+>```
+>/iot/mqtt/brokers/set [find name="Home Assistant"] client-id=[/system/routerboard/get serial-number]
+>```
 
 ### Script Installation
 Run the command below from the terminal:
