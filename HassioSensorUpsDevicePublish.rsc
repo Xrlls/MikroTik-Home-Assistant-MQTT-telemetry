@@ -1,5 +1,5 @@
 :local device
-
+:local rdev [[parse [system/script/get "HassioLib_DeviceString" source]]]; #Get information from host router
 foreach i in=[/system/ups/ find] do={
     #Defining device string
     :local delimiter "  FW:"
@@ -12,44 +12,10 @@ foreach i in=[/system/ups/ find] do={
         }
     :set ($device->"dev"->"sn") [/system/ups get $i serial]
     :set ($device ->"dev"->"ids") ($device->"dev"->"sn")
-    if (!([/system/resource/get board-name ]~"^CHR")) do={
-        :set ($device->"dev"->"via_device") [/system/routerboard get serial-number]
-    } else={
-        :set ($device->"dev"->"via_device") [system/license/get system-id ]
-    }
+    :set ($device->"via_device") ($rdev->"dev"->"sn")
     :set ($device->"dev"->"name") [/system/ups get $i name]
-
-    # Find a reasonable link to WebFig if enabled.
-    :local ipaddress
-    :foreach bridge in=[/interface/bridge/find] do={
-        :foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name] and disabled=no] do={
-            :set ipaddress [/ip/address/get $AddressIndex address]
-            :set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
-            :do {:set $ipaddress [:resolve $ipaddress]
-                :set $ipaddress [:pick $ipaddress 0 ([:len $ipaddress]-1)]}\
-            on-error={}
-        }
-    }
-    :if ([:len $ipaddress]=0) do={
-        :foreach addr in=[/ip/address/find disabled=no] do={
-            :local TempAddress [/ip/address/get $addr address]
-            :set $TempAddress [:pick $TempAddress 0 [:find $TempAddress "/"]]
-            :do {:set $ipaddress [:resolve $TempAddress]
-                :set $ipaddress [:pick $ipaddress 0 ([:len $ipaddress]-1)]}\
-            on-error={}
-        }
-    }
-
-    :if ([:len $ipaddress] >0) do={
-        :if (! [/ip/service/get www-ssl disabled ]) \
-            do={:set ($device->"dev"->"cu") "https://$ipaddress/"} \
-        else={:if (! [/ip/service/get www disabled]) \
-            do={:set ($device->"dev"->"cu") "http://$ipaddress/"}}
-
-
-    }
-        :set ($device->"o"->"name") "MikroTik-Home-Assistant-MQTT-telemetry"
-        :set ($device->"o"->"url") "https://github.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry"
+    :set ($device->"dev"->"cu") ($rdev->"dev"->"cu")
+    :set ($device->"o") ($rdev->"o")
 
     #Defining function to post data as Hassio auto discovery JSON to MQTT
     :local postdata do={
@@ -98,7 +64,10 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"unit_of_meas") "min"
     :set ($sensorconfig->"dev_cla") "duration"
     :set ($sensorconfig->"stat_cla") "total"
-    :set ($sensorconfig->"val_tpl") ("{%if value_json.".($sensorconfig->"obj_id")." | is_defined%}{{value_json.".($sensorconfig->"obj_id")."/60}}{%endif%}")
+    :set ($sensorconfig->"val_tpl") ("\
+        {%if value_json.".($sensorconfig->"obj_id")." | is_defined%}\
+            {{value_json.".($sensorconfig->"obj_id")."/60}}\
+        {%endif%}")
     $postdata $sensorconfig $device "sensor"
 
     :set $sensorconfig
@@ -108,7 +77,10 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"unit_of_meas") "V"
     :set ($sensorconfig->"dev_cla") "voltage"
     :set ($sensorconfig->"stat_cla") "measurement"
-    :set ($sensorconfig->"val_tpl") ("{%if value_json.".($sensorconfig->"obj_id")." | is_defined%}{{value_json.".($sensorconfig->"obj_id")."/100}}{%endif%}")
+    :set ($sensorconfig->"val_tpl") ("\
+        {%if value_json.".($sensorconfig->"obj_id")." | is_defined%}\
+            {{value_json.".($sensorconfig->"obj_id")."/100}}\
+        {%endif%}")
     $postdata $sensorconfig $device "sensor"
 
     :set $sensorconfig
@@ -118,7 +90,10 @@ foreach i in=[/system/ups/ find] do={
     :set ($sensorconfig->"unit_of_meas") "V"
     :set ($sensorconfig->"dev_cla") "voltage"
     :set ($sensorconfig->"stat_cla") "measurement"
-    :set ($sensorconfig->"val_tpl") ("{%if value_json.".($sensorconfig->"obj_id")." | is_defined%}{{value_json.".($sensorconfig->"obj_id")."/100}}{%endif%}")
+    :set ($sensorconfig->"val_tpl") ("\
+        {%if value_json.".($sensorconfig->"obj_id")." | is_defined%}\
+            {{value_json.".($sensorconfig->"obj_id")."/100}}\
+        {%endif%}")
     $postdata $sensorconfig $device "sensor"
 
     :set $sensorconfig
