@@ -48,7 +48,14 @@ foreach iface in=[interface/ethernet/find ] do={
 # Find a reasonable link to WebFig if enabled.
 local ipaddress
 foreach bridge in=[/interface/bridge/find] do={
-    foreach AddressIndex in=[ip/address/find where interface=[/interface/bridge/get $bridge name] and disabled=no] do={
+    :local cint
+    :if (([/interface/bridge/get 0 pvid]=1) or ([/interface/bridge/get 0 vlan-filtering]=no)) do={; #Check if not VLan enabled or using PVid 1
+        :set cint [/interface/bridge/get $bridge name]; #Look for addresses on the bridge
+    } else={ #Look for addresses on default PVid
+        :local vlan [/interface/bridge/get $bridge pvid]
+        :set cint [/interface/vlan get [/interface/vlan/find interface=[/interface/bridge/get $bridge name] vlan-id=$vlan] name] 
+    }
+    foreach AddressIndex in=[ip/address/find where interface=$cint and disabled=no] do={
         set ipaddress [/ip/address/get $AddressIndex address]
         set $ipaddress [:pick $ipaddress 0 [:find $ipaddress "/"]]
         do {set $ipaddress [resolve $ipaddress]
