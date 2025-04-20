@@ -11,7 +11,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         }
 
         local discoverypath "homeassistant/"
-        local domainpath "device_tracker/"
+        local domainpath "device_tracker"
 
         #-------------------------------------------------------
         #Build device string
@@ -24,15 +24,17 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             #build config for Hassio
             local entity
             set $entity ($entity,$dev)
-            set ($entity->"name") $name
-            set ($entity->"uniq_id") (($entity->"dev"->"ids")."_$name")
-            set ($entity->"obj_id") ($entity->"uniq_id")
-            set ($entity->"json_attr_t") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/attributes")
-            set ($entity->"src_type") "gps"
-            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
-                topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name/config") retain=yes              
+            :set ($entity->"cmps"->$name->"p") $domainpath
+            set ($entity->"cmps"->$name->"name") $name
+            set ($entity->"cmps"->$name->"uniq_id") (($entity->"dev"->"ids")."_$name")
+            set ($entity->"cmps"->$name->"obj_id") ($entity->"uniq_id")
+            set ($entity->"cmps"->$name->"json_attr_t") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/attributes")
+            set ($entity->"cmps"->$name->"src_type") "gps"
+            #/iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
+            #    topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name/config") retain=yes              
+            :return $entity;#[:serialize to=json $entity]
         }
             local name "GPS";#name
-            $buildconfig name=$name discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            :return [$buildconfig name=$name discoverypath=$discoverypath domainpath=$domainpath dev=$dev]
     }
 }
