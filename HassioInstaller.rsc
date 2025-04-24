@@ -180,6 +180,7 @@ if (!([/system/resource/get board-name ]~"^CHR")) do={
 
         $deploy fname=$fname interval=$interval policy=$policy
     #--------------------------------------------------------------
+    
     #Configure subscriptions for outputs
     :local code ([/tool/fetch "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/refs/heads/main/HassioGPIOCommandHandle.rsc" output=user as-value]->"data")
     #:set $code [:convert $code transform=crlf]; #Works from ROS7.17 forward
@@ -214,3 +215,10 @@ if (!([/system/resource/get board-name ]~"^CHR")) do={
     }
     set GPIOInstall
 }
+#--------------------------------------------------------------
+local fname "HassioDevicePublish"
+local interval "0s"
+local policy "read,test"
+
+$deploy fname=$fname interval=$interval policy=$policy
+#-------------------------------------------------------------- 
