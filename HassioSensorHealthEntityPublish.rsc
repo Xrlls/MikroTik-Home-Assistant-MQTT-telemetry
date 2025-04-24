@@ -26,19 +26,19 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             #build config for Hassio
             local entity
             :foreach eName,unit in=$name do={
-            local jsonname ("x".[$SearchReplace input=$eName search="-" replace="_"])
-            set $entity ($entity,$dev)
-            :set ($entity->"cmps"->$eName->"p") $domainpath
-            set ($entity->"cmps"->$eName->"name") $eName
-            set ($entity->"cmps"->$eName->"stat_t") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/state")
-            set ($entity->"cmps"->$eName->"uniq_id") (($entity->"dev"->"ids")."_$eName")
-            set ($entity->"cmps"->$eName->"obj_id") ($entity->"cmps"->$eName->"uniq_id")
-            set ($entity->"cmps"->$eName->"sug_dsp_prc") 1
-            set ($entity->"cmps"->$eName->"unit_of_meas") $unit
-            set ($entity->"cmps"->$eName->"dev_cla") ($devcla->$unit)
-            set ($entity->"cmps"->$eName->"stat_cla") "measurement"
-            set ($entity->"cmps"->$eName->"val_tpl") "{{ value_json.$jsonname }}"
-            set ($entity->"cmps"->$eName->"exp_aft") 70
+                local jsonname ("x".[$SearchReplace input=$eName search="-" replace="_"])
+                set $entity ($entity,$dev)
+                :set ($entity->"cmps"->$eName->"p") $domainpath
+                set ($entity->"cmps"->$eName->"name") $eName
+                set ($entity->"cmps"->$eName->"stat_t") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/state")
+                set ($entity->"cmps"->$eName->"uniq_id") (($entity->"dev"->"ids")."_$eName")
+                set ($entity->"cmps"->$eName->"obj_id") ($entity->"cmps"->$eName->"uniq_id")
+                set ($entity->"cmps"->$eName->"sug_dsp_prc") 1
+                set ($entity->"cmps"->$eName->"unit_of_meas") $unit
+                set ($entity->"cmps"->$eName->"dev_cla") ($devcla->$unit)
+                set ($entity->"cmps"->$eName->"stat_cla") "measurement"
+                set ($entity->"cmps"->$eName->"val_tpl") "{{ value_json.$jsonname }}"
+                set ($entity->"cmps"->$eName->"exp_aft") 70
              }
             :return $entity;#[:serialize to=json $entity]
 #            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
