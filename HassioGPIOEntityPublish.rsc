@@ -13,32 +13,34 @@
     :set $entity ($entity,$dev)
     :foreach eName,domainpath in=$name do={
         :local jsonname ("x".[$SearchReplace input=$eName search="-" replace="_"])
-        :set ($entity->"cmps"->$eName->"name") $eName
-        :set ($entity->"cmps"->$eName->"~") ($discoverypath."sensor/".($entity->"dev"->"ids")."/")
-        :set ($entity->"cmps"->$eName->"stat_t") "~state$NamePostfix"
-        :set ($entity->"cmps"->$eName->"avty_t") "~state$NamePostfix"
-        :set ($entity->"cmps"->$eName->"avty_tpl")\
+        :local dName ($eName.$NamePostfix)
+        :set ($entity->"cmps"->$dName->"p") $domainpath
+        :set ($entity->"cmps"->$dName->"name") $eName
+        :set ($entity->"cmps"->$dName->"~") ($discoverypath."sensor/".($entity->"dev"->"ids")."/")
+        :set ($entity->"cmps"->$dName->"stat_t") "~state$NamePostfix"
+        :set ($entity->"cmps"->$dName->"avty_t") "~state$NamePostfix"
+        :set ($entity->"cmps"->$dName->"avty_tpl")\
             "{%if value_json.$jsonname is defined%}\
                 {{'online'}}\
             {%else%}\
                 {{'offline'}}\
             {%endif%}"
-        :set ($entity->"cmps"->$eName->"uniq_id") (($entity->"dev"->"ids")."_$eName$NamePostfix")
-        :set ($entity->"cmps"->$eName->"obj_id") ($entity->"cmps"->$eName->"uniq_id")
+        :set ($entity->"cmps"->$dName->"uniq_id") (($entity->"dev"->"ids")."_$dName")
+        :set ($entity->"cmps"->$dName->"obj_id") ($entity->"cmps"->$dName->"uniq_id")
 
         :if ($domainpath="sensor") do={
-            :set ($entity->"cmps"->$eName->"sug_dsp_prc") 3
-            :set ($entity->"cmps"->$eName->"unit_of_meas") "V"
-            :set ($entity->"cmps"->$eName->"dev_cla") "voltage"
-            :set ($entity->"cmps"->$eName->"stat_cla") "measurement"
-            :set ($entity->"cmps"->$eName->"val_tpl")\
+            :set ($entity->"cmps"->$dName->"sug_dsp_prc") 3
+            :set ($entity->"cmps"->$dName->"unit_of_meas") "V"
+            :set ($entity->"cmps"->$dName->"dev_cla") "voltage"
+            :set ($entity->"cmps"->$dName->"stat_cla") "measurement"
+            :set ($entity->"cmps"->$dName->"val_tpl")\
                 "{%if value_json.$jsonname is defined%}\
                     {{value_json.$jsonname/1000}}\
                 {%endif%}"
-            :set ($entity->"cmps"->$eName->"exp_aft") 70
+            :set ($entity->"cmps"->$dName->"exp_aft") 70
         }
         :if ($domainpath="binary_sensor") do={
-            :set ($entity->"cmps"->$eName->"val_tpl")\
+            :set ($entity->"cmps"->$dName->"val_tpl")\
                 "{%if value_json.$jsonname is defined%}\
                     {%if value_json.$jsonname%}\
                         {{'ON'}}\
@@ -48,7 +50,7 @@
                 {%endif%}"
         }
         :if ($domainpath="switch") do={
-            :set ($entity->"cmps"->$eName->"val_tpl")\
+            :set ($entity->"cmps"->$dName->"val_tpl")\
                 "{%if value_json.$jsonname is defined%}\
                     {%if value_json.$jsonname%}\
                         {{'ON'}}\
@@ -56,12 +58,13 @@
                         {{'OFF'}}\
                     {%endif%}\
                 {%endif%}"
-            :set ($entity->"cmps"->$eName->"cmd_t") ($discoverypath.$domainpath."/".($entity->"dev"->"ids")."/command_$jsonname$NamePostfix")
+            :set ($entity->"cmps"->$dName->"cmd_t") ($discoverypath.$domainpath."/".($entity->"dev"->"ids")."/command_$jsonname$NamePostfix")
         }
     }
 #    /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
 #        topic=("$discoverypath$domainpath/".($entity->"dev"->"ids")."/$name$NamePostfix/config") retain=yes        
-    :return $entity;#[:serialize to=json $entity]
+#    :return $entity;
+    :return [:serialize to=json $entity]
 }
 
 :local all
