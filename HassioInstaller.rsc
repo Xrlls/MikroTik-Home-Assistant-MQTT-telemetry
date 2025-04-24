@@ -1,45 +1,11 @@
-#Install libs
-
-local fnames {"HassioLib_DeviceString";"HassioLib_SearchReplace"}
-
-
-foreach fname in=$fnames do={
-    #--------------------------------------------------------------
-    put "installing: $fname"
-    local url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
-    local source ([tool/fetch $url output=user as-value ]->"data")
-    local index [/system/script/find name=$fname]
-    if ( [len $index] =0) do={
-        /system/script/add name=$fname policy=read source=$source
-    } else={
-        #put [/system/script/get $index name]
-        system/script/set $index policy=read source=$source
-    }
-    #--------------------------------------------------------------
-}
-
-#remove legacy libs if installed
-
-local fnames {"HassioLib_JsonEscape";"HassioLib_JsonPick","HassioLib";"HassioLib_LowercaseHex"}
-
-
-foreach fname in=$fnames do={
-    #--------------------------------------------------------------
-    put "Removing: $fname"
-    foreach func in=[/system/script/find name=$fname] do={
-        /system/script/remove $func
-    }
-    #--------------------------------------------------------------
-}
-
-
-put "Functions"
-
-    #--------------------------------------------------------------
 local deploy do={
+    :local baseurl \ 
+"https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/refs/heads/Device-based-discovery/"
     put "installing: $fname"
     :if ([:len $url]=0) do={
-        set $url ("https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/".$fname.".rsc")
+        set $url ($baseurl.$fname.".rsc")
+    } else={
+        :set $url ($baseurl.$url)
     }
     local source ([tool/fetch $url output=user as-value ]->"data")
     local index [/system/script/find name=$fname]
@@ -63,16 +29,42 @@ local deploy do={
     } else={:put "   Not setting scheduler"}
 }
 
+#Install libs
+
+local fnames {"HassioLib_DeviceString";"HassioLib_SearchReplace"}
+
+foreach fname in=$fnames do={
+    $deploy fname=$fname policy="read"
+}
+
+#remove legacy libs if installed
+
+local fnames {"HassioLib_JsonEscape";"HassioLib_JsonPick","HassioLib";"HassioLib_LowercaseHex"}
+
+
+foreach fname in=$fnames do={
+    #--------------------------------------------------------------
+    put "Removing: $fname"
+    foreach func in=[/system/script/find name=$fname] do={
+        /system/script/remove $func
+    }
+    #--------------------------------------------------------------
+}
+
+
+put "Functions"
+
+    #--------------------------------------------------------------
+
 local fname "HassioFirmwareEntityPublish"
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20Entity%20Publish.rsc"
-local interval "0s"
+local url "Hassio%20Firmware%20Entity%20Publish.rsc"
 local policy "read,test"
 
-$deploy fname=$fname url=$url interval=$interval policy=$policy
+$deploy fname=$fname url=$url policy=$policy
  
    #--------------------------------------------------------------
 local fname "HassioFirmwareStatePublish"
-local url "https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/Hassio%20Firmware%20State%20Publish.rsc"
+local url "Hassio%20Firmware%20State%20Publish.rsc"
 local interval "6h"
 local policy "read,write,policy,test"
 
@@ -82,10 +74,9 @@ if ([system/package/find name=gps and disabled=no]) do={
     put "GPS found, installing position telemetry..."
     #--------------------------------------------------------------
     local fname "HassioDeviceTrackerEntityPublish"
-    local interval "0s"
     local policy "read,test"
 
-    $deploy fname=$fname interval=$interval policy=$policy
+    $deploy fname=$fname policy=$policy
 
     #--------------------------------------------------------------
     local fname "HassioDeviceTrackerStatePublish"
@@ -93,7 +84,7 @@ if ([system/package/find name=gps and disabled=no]) do={
     local policy "read,test"
 
     $deploy fname=$fname interval=$interval policy=$policy
-}
+} else={:put "GPS not found"}
 
 if ([/system/package/find where name=ups and disabled=no]) do={
     if ([[:parse "len [/system/ups/find ]"]]>0) do={
@@ -107,8 +98,8 @@ if ([/system/package/find where name=ups and disabled=no]) do={
         :local interval "1m"
         :local policy "read,test"
         $deploy fname=$fname interval=$interval policy=$policy
-    }
-}
+    } else={:put "UPS package installed but no UPS connected."}
+} else={:put "UPS package not installed."}
 
 if ([/system/package/find where name=iot and disabled=no]) do={
     if ([[:parse ":len [/iot/bluetooth/find]"]]>0) do={
@@ -121,50 +112,46 @@ if ([/system/package/find where name=iot and disabled=no]) do={
         :local interval "15s"
         :local policy "read,,write,policy,test"
         $deploy fname=$fname interval=$interval policy=$policy
-    }
+    } else={:put "Bluetooth not found"}
 }
 
 
 if (!([/system/resource/get board-name ]~"^CHR")) do={
-    if ([[:parse "[len [/system/health/find]]"]] >0) do={
-        put "Health sensors found, installing telemetry..."    
-        #--------------------------------------------------------------
-        local fname "HassioSensorHealthEntityPublish"
-        local interval "0s"
-        local policy "read,test"
+    :put "Hardware router detected."
+    :do {
+        if ([[:parse "[len [/system/health/find]]"]] >0) do={
+            put "Health sensors found, installing telemetry..."    
+            #--------------------------------------------------------------
+            local fname "HassioSensorHealthEntityPublish"
+            local policy "read,test"
 
-        $deploy fname=$fname interval=$interval policy=$policy
-        #--------------------------------------------------------------
-        local fname "HassioSensorHealthStatePublish"
-        local interval "1m"
-        local policy "read,write,test"
+            $deploy fname=$fname policy=$policy
+            #--------------------------------------------------------------
+            local fname "HassioSensorHealthStatePublish"
+            local interval "1m"
+            local policy "read,write,test"
 
-        $deploy fname=$fname interval=$interval policy=$policy
-    }
+            $deploy fname=$fname interval=$interval policy=$policy
+        }
+    } on-error={:put "No health sensor found."}
     #--------------------------------------------------------------
     put "Checking for POE support..."
-    :global PoeInstall false
-    :execute "/interface/ethernet/poe/find; :set \$PoeInstall true"
-    delay 1s
-    if ($PoeInstall=true) do={
-        put "   POE supported\n\r   Installing POE power monitor"
+    :do {
+        if ([[:parse ":len [/interface/ethernet/poe/find]"]]>0) do={
+            put "   POE supported\n\r   Installing POE power monitor"
     #--------------------------------------------------------------
-        local fname "HassioSensorPoeEntityPublish"
-        local interval "0s"
-        local policy "read,test"
+            local fname "HassioSensorPoeEntityPublish"
+            local policy "read,test"
 
-        $deploy fname=$fname interval=$interval policy=$policy
+            $deploy fname=$fname policy=$policy
     #--------------------------------------------------------------
-        local fname "HassioSensorPoeStatePublish"
-        local interval "1m"
-        local policy "read,test"
+            local fname "HassioSensorPoeStatePublish"
+            local interval "1m"
+            local policy "read,test"
 
-        $deploy fname=$fname interval=$interval policy=$policy
-    #--------------------------------------------------------------
-    } else={
-        put "   POE not supported"
-    }
-    set PoeInstall
+            $deploy fname=$fname interval=$interval policy=$policy
+        }
+    } on-error={put "   POE not supported"}
     #--------------------------------------------------------------
     put "Checking for GPIO support..."
     :global GPIOInstall false
@@ -183,10 +170,9 @@ if (!([/system/resource/get board-name ]~"^CHR")) do={
         put "   Installing..."
     #--------------------------------------------------------------
         local fname "HassioGPIOEntityPublish"
-        local interval "0s"
         local policy "read,test"
 
-        $deploy fname=$fname interval=$interval policy=$policy
+        $deploy fname=$fname policy=$policy
     #--------------------------------------------------------------
         local fname "HassioGPIOStatePublish"
         local interval "1m"
