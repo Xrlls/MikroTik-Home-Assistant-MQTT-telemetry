@@ -48,6 +48,7 @@
         #Accelerometers
         {
         :local sensorconfig
+        :local Index 3
         :set ($sensorconfig->"sug_dsp_prc") 2
         :set ($sensorconfig->"unit_of_meas") "m/s\C2\B2"
         :set ($sensorconfig->"stat_cla") "measurement"
@@ -56,7 +57,8 @@
         :set ($sensorconfig->"name") "Acceleration X"
         :set ($sensorconfig->"obj_id") "acc_x"
         :set ($sensorconfig->"val_tpl") "\
-            {% set x= int(value_json.data[18:20] + value_json.data[16:18],base=16)%}\
+            {% set index = $Index %}\
+            {% set x= int(value_json.data[(9+index)*2:(10+index)*2] + value_json.data[(8+index)*2:(9+index)*2],base=16)%}\
             {% if x>0x7fff%}\
                 {% set x=x-0x10000%}\
             {%endif%}\
@@ -67,7 +69,8 @@
         :set ($sensorconfig->"name") "Acceleration Y"
         :set ($sensorconfig->"obj_id") "acc_y"
         :set ($sensorconfig->"val_tpl") "\
-            {% set y= int(value_json.data[22:24] + value_json.data[20:22],base=16)%}\
+            {% set index = $Index %}\
+            {% set y= int(value_json.data[(11+index)*2:(12+index)*2] + value_json.data[(10+index)*2:(11+index)*2],base=16)%}\
             {% if y>0x7fff%}\
                 {% set y=y-0x10000%}\
             {%endif%}\
@@ -78,7 +81,8 @@
         :set ($sensorconfig->"name") "Acceleration Z"
         :set ($sensorconfig->"obj_id") "acc_z"
         :set ($sensorconfig->"val_tpl") "\
-            {% set z= int(value_json.data[26:28] + value_json.data[24:26],base=16)%}\
+            {% set index = $Index %}\
+            {% set z= int(value_json.data[(13+index)*2:(14+index)*2] + value_json.data[(12+index)*2:(13+index)*2],base=16)%}\
             {% if z>0x7fff%}\
                 {% set z=z-0x10000%}\
             {%endif%}\
@@ -98,7 +102,8 @@
         :set ($sensorconfig->"dev_cla") "temperature"
         :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"val_tpl") "\
-            {% set t= int(value_json.data[30:32] + value_json.data[28:30],base=16)%}\
+            {% set index = 3 %}\
+            {% set t= int(value_json.data[(15+index)*2:(16+index)*2] + value_json.data[(14+index)*2:(15+index)*2],base=16)%}\
             {% if t>0x7fff%}\
                 {% set t=t-0x10000%}\
             {%endif%}\
@@ -116,7 +121,9 @@
         :set ($sensorconfig->"dev_cla") "duration"
         :set ($sensorconfig->"stat_cla") "total_increasing"
         :set ($sensorconfig->"ent_cat") "diagnostic"
-        :set ($sensorconfig->"val_tpl") "{{ int(value_json.data[38:40] + value_json.data[36:38] + value_json.data[34:36] + value_json.data[32:34],base=16)/60}}"
+        :set ($sensorconfig->"val_tpl") "\
+                        {% set index = 3 %}\
+                        {{ int(value_json.data[(19+index)*2:(20+index)*2] + value_json.data[(18+index)*2:(19+index)*2] + value_json.data[(17+index)*2:(18+index)*2] + value_json.data[(16+index)*2:(17+index)*2],base=16)/60}}"
         $postdata $sensorconfig $device "sensor"
         }
         #RSSI
@@ -165,7 +172,9 @@
 #        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "battery"
         :set ($sensorconfig->"stat_cla") "measurement"
-        :set ($sensorconfig->"val_tpl") "{{int(value_json.data[42:44],base=16) }}"
+        :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
+            {{int(value_json.data[(21+index)*2:(22+index)*2],base=16) }}"
         $postdata $sensorconfig $device "sensor"
         }
         #Binary sensors
@@ -176,8 +185,10 @@
         :set ($sensorconfig->"obj_id") "imp_x"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
             {%if value_json.data is defined%}\
-                {% if((int(value_json.data[41:42],base=16) | bitwise_and(0x08))|bool)%}\
+                {# if((int(value_json.data[41:42],base=16) | bitwise_and(0x08))|bool)#}\
+                {% if((int(value_json.data[(20+index)*2+1:(21+index)*2],base=16) | bitwise_and(0x08))|bool)%}\
                     ON\
                 {%else%}\
                     OFF\
@@ -193,8 +204,10 @@
         :set ($sensorconfig->"obj_id") "imp_y"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
             {%if value_json.data is defined%}\
-                {% if((int(value_json.data[40:41],base=16) | bitwise_and(0x01))|bool)%}\
+                {# if((int(value_json.data[40:41],base=16) | bitwise_and(0x01))|bool)#}\
+                {% if((int(value_json.data[(20+index)*2:(20*index)*2+1],base=16) | bitwise_and(0x01))|bool)%}\
                     ON\
                 {%else%}\
                     OFF\
@@ -210,8 +223,9 @@
         :set ($sensorconfig->"obj_id") "imp_z"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
             {%if value_json.data is defined%}\
-                {% if((int(value_json.data[40:41],base=16) | bitwise_and(0x02))|bool)%}\
+                {% if((int(value_json.data[(20+index)*2:(20*index)*2+1],base=16) | bitwise_and(0x01))|bool)%}\
                     ON\
                 {%else%}\
                     OFF\
@@ -227,8 +241,9 @@
         :set ($sensorconfig->"obj_id") "freefall"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
             {%if value_json.data is defined%}\
-                {% if((int(value_json.data[41:42],base=16) | bitwise_and(0x04))|bool)%}\
+                {% if((int(value_json.data[(20+index)*2+1:(21+index)*2],base=16) | bitwise_and(0x08))|bool)%}\
                     ON\
                 {%else%}\
                     OFF\
@@ -244,8 +259,9 @@
         :set ($sensorconfig->"obj_id") "Tilt"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
             {%if value_json.data is defined%}\
-                {% if((int(value_json.data[41:42],base=16) | bitwise_and(0x02))|bool)%}\
+                {% if((int(value_json.data[(20+index)*2+1:(21+index)*2],base=16) | bitwise_and(0x08))|bool)%}\
                     ON\
                 {%else%}\
                     OFF\
@@ -259,9 +275,10 @@
         :local sensorconfig
         :set ($sensorconfig->"name") "Switch"
         :set ($sensorconfig->"obj_id") "Switch"
-        :set ($sensorconfig->"val_tpl") \
-            "{%if value_json.data is defined%}\
-                {% if((int(value_json.data[41:42],base=16) | bitwise_and(0x01))|bool)%}\
+        :set ($sensorconfig->"val_tpl") "\
+            {% set index = 3 %}\
+            {%if value_json.data is defined%}\
+                {% if((int(value_json.data[(20+index)*2+1:(21+index)*2],base=16) | bitwise_and(0x08))|bool)%}\
                     ON\
                 {%else%}\
                     OFF\
