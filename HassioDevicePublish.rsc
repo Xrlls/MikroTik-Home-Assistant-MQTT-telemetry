@@ -46,7 +46,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         :log info "Completing migration..."
         :foreach ctopic in=$topics do={
             :log debug $ctopic
-#                /iot/mqtt/publish broker="Home Assistant" topic=$ctopic message=""
+#                /iot/mqtt/publish broker="Home Assistant" topic=$ctopic message="" retain=yes; #Message must be retained or Home Assistant throws a persistant error.
         }
     }
 }
