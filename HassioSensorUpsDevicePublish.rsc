@@ -14,7 +14,7 @@ foreach i in=[/system/ups/ find] do={
     :set ($device ->"dev"->"ids") ($device->"dev"->"sn")
     :set ($device->"via_device") ($rdev->"dev"->"sn")
     :set ($device->"dev"->"name") [/system/ups get $i name]
-    :set ($device->"dev"->"cu") ($rdev->"dev"->"cu")
+    :set ($device->"dev"->"cu") (($rdev->"dev"->"cu")."/webfig/#System:UPS")
     :set ($device->"o") ($rdev->"o")
 
     #Defining function to post data as Hassio auto discovery JSON to MQTT
