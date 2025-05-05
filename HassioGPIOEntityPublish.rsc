@@ -63,8 +63,8 @@
     }
 #    /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
 #        topic=("$discoverypath$domainpath/".($entity->"dev"->"ids")."/$name$NamePostfix/config") retain=yes        
-#    :return $entity;
-    :return [:serialize to=json $entity]
+    :return $entity;
+#    :return [:serialize to=json $entity]
 }
 
 :local all
