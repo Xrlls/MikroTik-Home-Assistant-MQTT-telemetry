@@ -17,7 +17,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         /system/script
         :local out
         :local temp
-        :foreach script in=[find name~"^Hassio.*EntityPublish\$"] do={
+        :foreach script in=[find name~"^Hassio.*EntityPublish\$" and !(name~"^HassioLib")] do={
             :set temp ($out->"cmps");                   #Storing existing components
             :set out [[:parse [get $script source]]];   #Run code to add new components
             :set ($out->"cmps") (($out->"cmps"),$temp); #Concatenating existing and neww components
