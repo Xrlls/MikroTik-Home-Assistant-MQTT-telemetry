@@ -1,4 +1,3 @@
-:local migrate true
 :local discoverypath "homeassistant/"
 :local domainpath "device"
 
@@ -13,7 +12,11 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             delay 1m; # Wait and attempt reconnect
             iot/mqtt/connect broker="Home Assistant"
         }
-
+        :local migrate false
+        :if [/system/scheduler/find name~"^Hassio.+EntityPublish\$"] do={
+            :set migrate true
+            :put "Migrating to device based discovery..."
+        }
         /system/script
         :local out
         :local temp
@@ -32,21 +35,27 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             :foreach entity,params in=($out->"cmps") do={
                 :set ($topics->$entity) ($discoverypath.($params->"p")."/".($out->"dev"->"sn")."/".$entity."/config")
                 :log debug ($topics->$entity)
-            #    /iot/mqtt/publish broker="Home Assistant" topic=($topics->$entity) message="{\"migrate_discovery\": true }"
+                /iot/mqtt/publish broker="Home Assistant" topic=($topics->$entity) message="{\"migrate_discovery\": true }"
             }
         }
 
         #Publish device
         :log info "Publish device..."
-#        /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath.$domainpath"/".($out->"dev"->"sn")."/config")\
-#            message=[:serialize to=json $out]\
-#            retain=yes
+        /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath.$domainpath"/".($out->"dev"->"sn")."/config")\
+            message=[:serialize to=json $out]\
+            retain=yes
 
         #Migrate complete
-        :log info "Completing migration..."
-        :foreach ctopic in=$topics do={
-            :log debug $ctopic
-#                /iot/mqtt/publish broker="Home Assistant" topic=$ctopic message="" retain=yes; #Message must be retained or Home Assistant throws a persistant error.
+        :if ($migrate) do={
+            :log info "Completing migration..."
+            :foreach ctopic in=$topics do={
+                :log debug $ctopic
+                /iot/mqtt/publish broker="Home Assistant" topic=$ctopic message="" retain=yes; #Message must be retained or Home Assistant throws a persistant error.
+
+            }
+            :log info "removing entity publish schedulers..."
+            /system/scheduler/remove [find name~"^Hassio.+EntityPublish\$"]
         }
+        :set migrate
     }
 }
