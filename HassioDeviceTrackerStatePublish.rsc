@@ -17,11 +17,10 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         if (($pos->"valid")) do={
             set ($data->"latitude") ($pos->"latitude")
             set ($data->"longitude") ($pos->"longitude")
+            set $data [serialize $data to=json]
         } else={
-            set ($data->"latitude") [:nothing]
-            set ($data->"longitude") [:nothing]
+            :set data "{}"
         }
-        set $data [serialize $data to=json]
         /iot/mqtt/publish broker="Home Assistant" message=$data topic="$discoverypath$domainpath$ID/attributes" retain=no   
     }
 }
