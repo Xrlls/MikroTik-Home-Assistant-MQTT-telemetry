@@ -33,7 +33,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         :if $migrate do={
             :log info "Start migration..."
             :foreach entity,params in=($out->"cmps") do={
-                :set ($topics->$entity) ($discoverypath.($params->"p")."/".($out->"dev"->"sn")."/".$entity."/config")
+                :set ($topics->$entity) ($discoverypath.($params->"p")."/".($out->"dev"->"ids")."/".$entity."/config")
                 :log debug ($topics->$entity)
                 /iot/mqtt/publish broker="Home Assistant" topic=($topics->$entity) message="{\"migrate_discovery\": true }"
             }
@@ -41,7 +41,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
         #Publish device
         :log info "Publish device..."
-        /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath.$domainpath."/".($out->"dev"->"sn")."/config")\
+        /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath.$domainpath."/".($out->"dev"->"ids")."/config")\
             message=[:serialize to=json $out]\
             retain=yes
 
