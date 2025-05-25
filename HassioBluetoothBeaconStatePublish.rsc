@@ -66,8 +66,11 @@
 /iot/bluetooth/scanners/advertisements
 :local FrameCache
 
-:foreach index in=[find epoch>$HassioBtTimeStamp and data~"^..ff4f0901"] do={
+:foreach index in=[find epoch>$HassioBtTimeStamp and data~"..ff4f0901"] do={
     :local beacon [get $index]
+    :if ([:pick ($beacon->"data") 2 4]!="ff") do={; #Check if there is prepended data (fw. 2.4.0 and newer)
+        :set ($beacon->"data") [:pick ($beacon->"data") 6 [:len ($beacon->"data")]]
+    }
     :set $HassioBtTimeStamp ($beacon->"epoch")
     :local State [ :pick ($beacon->"data") 40 42]
     :if ($State!=($HassioKnownBT->($beacon->"address")->"state")) do={ ; #Check if state has changed
