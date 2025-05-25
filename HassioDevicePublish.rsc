@@ -26,7 +26,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             :set ($out->"cmps") (($out->"cmps"),$temp); #Concatenating existing and neww components
         }
 
-        :put [:serialize to=json $out]
+        :log debug [:serialize to=json $out]
 
         :local topics
         #Migrate topics
@@ -41,7 +41,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
         #Publish device
         :log info "Publish device..."
-        /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath.$domainpath"/".($out->"dev"->"sn")."/config")\
+        /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath.$domainpath."/".($out->"dev"->"sn")."/config")\
             message=[:serialize to=json $out]\
             retain=yes
 
