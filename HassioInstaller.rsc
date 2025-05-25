@@ -1,6 +1,7 @@
 local deploy do={
     :local baseurl \ 
-"https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/refs/heads/Device-based-discovery/"
+#"https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/refs/heads/Device-based-discovery/"
+"https://raw.githubusercontent.com/Xrlls/MikroTik-Home-Assistant-MQTT-telemetry/main/"
     put "installing: $fname"
     :if ([:len $url]=0) do={
         set $url ($baseurl.$fname.".rsc")
