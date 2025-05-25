@@ -68,11 +68,17 @@ I have tested it on various MikroTik devices I have available:
 - wAP ac LTE6 kit aka. wAP R ac
 - hAP ax^2
 - CHR
-- SXTsq Lite2
+- SXTsq Lite2 (no longer tested)
 - L009UiGS-2HaxD-IN
 - KNOT LR8 aka. KNOT R
+- SXT LTE kit aka. SXT R
 
 I will happily test on any other devices you might want to gift me :)
+
+### Community tested devices
+These are devices reported as working by others, but I don't own myself:
+- RB450Gx4 reported by [SkeLLLa](https://github.com/SkeLLLa) on April 26<sup>th</sup>, 2025
+- CRS328-24P-4S+ reported by [SkeLLLa](https://github.com/SkeLLLa) on April 26<sup>th</sup>, 2025
 
 ## Installation
 
