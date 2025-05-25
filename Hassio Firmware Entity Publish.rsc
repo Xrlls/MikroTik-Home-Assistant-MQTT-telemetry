@@ -12,36 +12,44 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
 
 
         local discoverypath "homeassistant/"
-        local domainpath "update/"
+        local domainpath "update"
 
         #-------------------------------------------------------
         #Build device string
         #-------------------------------------------------------
         local dev [[parse [system/script/get "HassioLib_DeviceString" source]]]
         local buildconfig do= {
-
-            #build config for Hassio
-            local entity
-            set $entity ($entity,$dev)
-            set ($entity->"\7E") ("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name")
-            set ($entity->"name") $name
-            set ($entity->"stat_t") "~/state"
-            set ($entity->"uniq_id") (($entity->"dev"->"ids")."_$name")
-            set ($entity->"obj_id") ($entity->"uniq_id")
-            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
-                topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name/config") retain=yes
+            :local entity
+            :set $entity ($entity,$dev)
+            :foreach k,v in=$name do={
+                #build config for Hassio
+                :set ($entity->"cmps"->$k->"p") $domainpath
+                set ($entity->"cmps"->$k->"\7E") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/$k")
+                set ($entity->"cmps"->$k->"name") $k
+                set ($entity->"cmps"->$k->"stat_t") "~/state"
+                set ($entity->"cmps"->$k->"uniq_id") (($entity->"dev"->"ids")."_$k")
+                set ($entity->"cmps"->$k->"obj_id") ($entity->"uniq_id")
+            }
+            :return $entity
+#            :put [:serialize to=json $entity]
+#            /iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
+#                topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name/config") retain=yes
+            
         }
+        :local all
         #-------------------------------------------------------
         #Handle routerboard firmware for non CHR
         #-------------------------------------------------------
         if (!([/system/resource/get board-name ]~"^CHR")) do={
-            $buildconfig name="RouterBOARD" discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            #$buildconfig name="RouterBOARD" discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+            :set ($all->"RouterBOARD") [:nothing]
         }
 
         #-------------------------------------------------------
         #Handle RouterOS
         #-------------------------------------------------------
-        $buildconfig name="RouterOS" discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+        #$buildconfig name="RouterOS" discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+        :set ($all->"RouterOS") [:nothing]
 
         #-------------------------------------------------------
         #Handle LTE interfaces
@@ -57,7 +65,8 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 local modemname [:pick ($lte->"model")\
                     ([:find ($lte->"model") "\"" -1] +1)\
                     [:find ($lte->"model") "\"" [:find ($lte->"model") "\"" -1]]]
-                $buildconfig name=$modemname discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+                #$buildconfig name=$modemname discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+                :set ($all->$modemname) [:nothing]
                 }
             }
         }
@@ -77,8 +86,11 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                     :set ($inf->"model") [:pick ($inf->"model") 6 [:len ($inf->"model")]];
                     #:put "AT command"
                 }
-                $buildconfig name=($inf->"model") discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+                #$buildconfig name=($inf->"model") discoverypath=$discoverypath domainpath=$domainpath dev=$dev
+                :set ($all->($inf->"model")) [:nothing]
             }
-        }        
+        }
+#        :put $all        
+        :return [$buildconfig name=$all discoverypath=$discoverypath domainpath=$domainpath dev=$dev]
     }
 }
