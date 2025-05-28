@@ -2,31 +2,34 @@
 
         :local postdata do={
             :local discoverypath "homeassistant/"
-            :local dtopic [([:pick ($2->"dev"->"cns"->0->1) -1 2].[:pick ($2->"dev"->"cns"->0->1) 3 5].\
-                            [:pick ($2->"dev"->"cns"->0->1) 6 8].[:pick ($2->"dev"->"cns"->0->1) 9 11].\
-                            [:pick ($2->"dev"->"cns"->0->1) 12 14].[:pick ($2->"dev"->"cns"->0->1) 15 17])]
-            :local pd ($1,$2)
-            :if (($3="sensor") and !(($1->"dev_cla")="timestamp")) do={:set ($pd->"exp_aft") 70}
-            :set ($pd->"~") ($discoverypath."sensor/".$dtopic."/state")
-            :set ($pd->"avty_t") "~"
-            :if ([:typeof ($1->"avty_tpl")]="nothing") do={
-                :set ($pd->"avty_tpl") "\
-                    {%if value_json.data is defined%}\
-                        online\
-                    {%else%}\
-                        offline\
-                    {%endif%}"
+            :local dtopic [([:pick ($1->"dev"->"cns"->0->1) -1 2].[:pick ($1->"dev"->"cns"->0->1) 3 5].\
+                            [:pick ($1->"dev"->"cns"->0->1) 6 8].[:pick ($1->"dev"->"cns"->0->1) 9 11].\
+                            [:pick ($1->"dev"->"cns"->0->1) 12 14].[:pick ($1->"dev"->"cns"->0->1) 15 17])]
+            :foreach k,v in=($1->"cmps") do={
+                #:local pd ($1,$2)
+                :if ((($v->"p")="sensor") and !(($v->"dev_cla")="timestamp")) do={:set ($1->"cmps"->$k->"exp_aft") 70}
+                :set ($1->"cmps"->$k->"~") ($discoverypath."sensor/".$dtopic."/state")
+                :set ($1->"cmps"->$k->"avty_t") "~"
+                :if ([:typeof ($v->"avty_tpl")]="nothing") do={
+                    :set ($1->"cmps"->$k->"avty_tpl") "\
+                        {%if value_json.data is defined%}\
+                            online\
+                        {%else%}\
+                            offline\
+                        {%endif%}"
+                }
+                :set ($1->"cmps"->$k->"obj_id") ($dtopic."_".($v->"obj_id"))
+                :set ($1->"cmps"->$k->"uniq_id") ($1->"cmps"->$k->"obj_id")
+                :set ($1->"cmps"->$k->"stat_t") "~"
             }
-            :set ($pd->"obj_id") ($dtopic."_".($1->"obj_id"))
-            :set ($pd->"uniq_id") ($pd->"obj_id")
-#            :set ($pd->"stat_t") ($discoverypath."sensor/".$dtopic."/state")
-            :set ($pd->"stat_t") "~"
-            /iot/mqtt/publish broker="Home Assistant"\
-                topic=($discoverypath.$3."/".$dtopic."/".($1->"obj_id")."/config")\
-                message=[:serialize $pd to=json]\
-                retain=yes
+            :put [:serialize $1 to=json]
+#            /iot/mqtt/publish broker="Home Assistant"\
+#                topic=($discoverypath.$3."/".$dtopic."/".($1->"obj_id")."/config")\
+#                message=[:serialize $pd to=json]\
+#                retain=yes
         }
 
+:local 1 "18:FD:74:AC:A1:F1"
         #------------------------------------
         #Build device string
         #------------------------------------
@@ -48,10 +51,10 @@
         #Accelerometers
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"sug_dsp_prc") 2
         :set ($sensorconfig->"unit_of_meas") "m/s\C2\B2"
         :set ($sensorconfig->"stat_cla") "measurement"
-#        :set ($sensorconfig->"exp_aft") 70
         #X
         :set ($sensorconfig->"name") "Acceleration X"
         :set ($sensorconfig->"obj_id") "acc_x"
@@ -62,7 +65,7 @@
             {%endif%}\
             {{x*9.82/256}}"
         :set ($sensorconfig->"ic") "mdi:axis-x-arrow"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         #Y
         :set ($sensorconfig->"name") "Acceleration Y"
         :set ($sensorconfig->"obj_id") "acc_y"
@@ -73,7 +76,7 @@
             {%endif%}\
             {{y*9.82/256}}"
         :set ($sensorconfig->"ic") "mdi:axis-y-arrow"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         #Z
         :set ($sensorconfig->"name") "Acceleration Z"
         :set ($sensorconfig->"obj_id") "acc_z"
@@ -84,17 +87,17 @@
             {%endif%}\
             {{z*9.82/256}}"
         :set ($sensorconfig->"ic") "mdi:axis-z-arrow"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Thermometer
         if ($2) do=\
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Temperature"
         :set ($sensorconfig->"obj_id") "temp"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 1
         :set ($sensorconfig->"unit_of_meas") "\C2\B0\43"
-#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "temperature"
         :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"val_tpl") "\
@@ -103,30 +106,30 @@
                 {% set t=t-0x10000%}\
             {%endif%}\
             {{t/256}}"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Uptime
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Uptime"
         :set ($sensorconfig->"obj_id") "uptime"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 1
         :set ($sensorconfig->"unit_of_meas") "min"
-#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "duration"
         :set ($sensorconfig->"stat_cla") "total_increasing"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") "{{ int(value_json.data[38:40] + value_json.data[36:38] + value_json.data[34:36] + value_json.data[32:34],base=16)/60}}"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #RSSI
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "RSSI"
         :set ($sensorconfig->"obj_id") "rssi"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 0
         :set ($sensorconfig->"unit_of_meas") "dB"
-#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "signal_strength"
         :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"ent_cat") "diagnostic"
@@ -137,11 +140,12 @@
                 {%else%}\
                     offline\
                 {%endif%}"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Timestamp
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Last seen"
         :set ($sensorconfig->"obj_id") "last_seen"                                                               
         :set ($sensorconfig->"dev_cla") "timestamp"
@@ -153,25 +157,26 @@
                 {%else%}\
                     offline\
                 {%endif%}"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Battery
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Battery"
         :set ($sensorconfig->"obj_id") "battery"
         :set ($sensorconfig->"sug_dsp_prc") 0
         :set ($sensorconfig->"unit_of_meas") "%"
-#        :set ($sensorconfig->"exp_aft") 70
         :set ($sensorconfig->"dev_cla") "battery"
         :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"val_tpl") "{{int(value_json.data[42:44],base=16) }}"
-        $postdata $sensorconfig $device "sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Binary sensors
         #X
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Impact X"
         :set ($sensorconfig->"obj_id") "imp_x"
         :set ($sensorconfig->"en") false
@@ -184,11 +189,12 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-x-arrow"
-        $postdata $sensorconfig $device "binary_sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Y
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Impact Y"
         :set ($sensorconfig->"obj_id") "imp_y"
         :set ($sensorconfig->"en") false
@@ -201,11 +207,12 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-y-arrow"
-        $postdata $sensorconfig $device "binary_sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Z
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Impact Z"
         :set ($sensorconfig->"obj_id") "imp_z"
         :set ($sensorconfig->"en") false
@@ -218,11 +225,12 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-z-arrow"
-        $postdata $sensorconfig $device "binary_sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Free fall
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Free fall"
         :set ($sensorconfig->"obj_id") "freefall"
         :set ($sensorconfig->"en") false
@@ -235,11 +243,12 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:arrow-down-bold-box-outline"
-        $postdata $sensorconfig $device "binary_sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Tilt
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Tilt"
         :set ($sensorconfig->"obj_id") "Tilt"
         :set ($sensorconfig->"en") false
@@ -252,11 +261,12 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:spirit-level"
-        $postdata $sensorconfig $device "binary_sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Switch
         {
         :local sensorconfig
+        :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Switch"
         :set ($sensorconfig->"obj_id") "Switch"
         :set ($sensorconfig->"val_tpl") \
@@ -269,18 +279,18 @@
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:magnet-on"
         
-        $postdata $sensorconfig $device "binary_sensor"
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
         #Devicetracker
         {
-        :local sensorconfig $device
+        :local sensorconfig;# $device
+        :set ($sensorconfig->"p") "device_tracker"
         :set ($sensorconfig->"name") "Location"
         :set ($sensorconfig->"obj_id") "loc"
         :local discoverypath "homeassistant/"
         :local dtopic [([:pick ($device->"dev"->"cns"->0->1) -1 2].[:pick ($device->"dev"->"cns"->0->1) 3 5].\
                         [:pick ($device->"dev"->"cns"->0->1) 6 8].[:pick ($device->"dev"->"cns"->0->1) 9 11].\
                         [:pick ($device->"dev"->"cns"->0->1) 12 14].[:pick ($device->"dev"->"cns"->0->1) 15 17])]
-        :set ($sensorconfig->"obj_id") ($dtopic."_".($sensorconfig->"obj_id"))
         :set ($sensorconfig->"uniq_id") ($sensorconfig->"obj_id")
         :set ($sensorconfig->"~") ($discoverypath."sensor/".$dtopic."/state")
         :set ($sensorconfig->"stat_t") "~"
@@ -294,8 +304,7 @@
             {%else%}\
                 {}\
             {%endif%}"
-        /iot/mqtt/publish broker="Home Assistant"\
-            topic=($discoverypath."device_tracker/".$dtopic."/config")\
-            message=[:serialize $sensorconfig to=json] retain=yes
+        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
         }
 #    }
+    $postdata $device
