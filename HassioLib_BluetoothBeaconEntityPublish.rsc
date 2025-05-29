@@ -6,30 +6,56 @@
                             [:pick ($1->"dev"->"cns"->0->1) 6 8].[:pick ($1->"dev"->"cns"->0->1) 9 11].\
                             [:pick ($1->"dev"->"cns"->0->1) 12 14].[:pick ($1->"dev"->"cns"->0->1) 15 17])]
             :foreach k,v in=($1->"cmps") do={
-                #:local pd ($1,$2)
                 :if ((($v->"p")="sensor") and !(($v->"dev_cla")="timestamp")) do={:set ($1->"cmps"->$k->"exp_aft") 70}
                 :set ($1->"cmps"->$k->"~") ($discoverypath."sensor/".$dtopic."/state")
-                :set ($1->"cmps"->$k->"avty_t") "~"
-                :if ([:typeof ($v->"avty_tpl")]="nothing") do={
-                    :set ($1->"cmps"->$k->"avty_tpl") "\
-                        {%if value_json.data is defined%}\
-                            online\
-                        {%else%}\
-                            offline\
-                        {%endif%}"
+                :if (($v->"p")!="device_tracker") do={
+                    :set ($1->"cmps"->$k->"avty_t") "~"
+                    :if ([:typeof ($v->"avty_tpl")]="nothing") do={
+                        :set ($1->"cmps"->$k->"avty_tpl") "\
+                            {%if value_json.data is defined%}\
+                                online\
+                            {%else%}\
+                                offline\
+                            {%endif%}"
+                    }
                 }
                 :set ($1->"cmps"->$k->"obj_id") ($dtopic."_".($v->"obj_id"))
                 :set ($1->"cmps"->$k->"uniq_id") ($1->"cmps"->$k->"obj_id")
                 :set ($1->"cmps"->$k->"stat_t") "~"
             }
             :put [:serialize $1 to=json]
-#            /iot/mqtt/publish broker="Home Assistant"\
-#                topic=($discoverypath.$3."/".$dtopic."/".($1->"obj_id")."/config")\
-#                message=[:serialize $pd to=json]\
-#                retain=yes
-        }
+#            :local migrate true
+            :local topics
+            #Migrate topics
+            :if $migrate do={
+                :log info "Start migration..."
+                :foreach entity,params in=($1->"cmps") do={
+                    :if (($params->"p")="device_tracker") do={
+                    :set ($topics->$entity) ($discoverypath.($params->"p")."/".$dtopic."/config")
+                    } else={
+                    :set ($topics->$entity) ($discoverypath.($params->"p")."/".$dtopic."/".$entity."/config")
+                    }
+                    :log debug ($topics->$entity)
+                    /iot/mqtt/publish broker="Home Assistant" topic=($topics->$entity) message="{\"migrate_discovery\": true }"
+                }
+            }
 
-:local 1 "18:FD:74:AC:A1:F1"
+            #Publish device
+            :log info "Publish device..."
+            /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath."device/".$dtopic."/config")\
+                message=[:serialize to=json $1]\
+                retain=yes
+
+            #Migrate complete
+                :log info "Completing migration..."
+                :foreach ctopic in=$topics do={
+                    :log debug $ctopic
+                    /iot/mqtt/publish broker="Home Assistant" topic=$ctopic message="" retain=yes; #Message must be retained or Home Assistant throws a persistant error.
+
+                }
+            :set $migrate
+            }
+
         #------------------------------------
         #Build device string
         #------------------------------------
