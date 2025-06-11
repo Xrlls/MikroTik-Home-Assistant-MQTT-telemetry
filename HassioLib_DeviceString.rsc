@@ -37,7 +37,7 @@ foreach iface in=[interface/ethernet/find ] do={
         set $index ($index+1)
     }
 # Get Wi-Fi Wave2 MAC Addresses
-    :onerror ErrorName in={set iface [[parse "/interface/wifiwave2/radio/find"]]} do={set iface [:nothing]; log/info message="no WIFI wave2"}
+    :onerror ErrorName in={set iface [[parse "/interface/wifiwave2/radio/find local"]]} do={set iface [:nothing]; log/info message="no WIFI wave2"}
     local Action [parse "local a [/interface/wifi/radio/get \$1 radio-mac];return \$a"]
     foreach ciface in=$iface do={
         set ($Device->"dev"->"cns"->$index->0) "mac"
