@@ -72,6 +72,7 @@ I have tested it on various MikroTik devices I have available:
 - L009UiGS-2HaxD-IN
 - KNOT LR8 aka. KNOT R
 - SXT LTE kit aka. SXT R
+- wAP LR2
 
 I will happily test on any other devices you might want to gift me :)
 
