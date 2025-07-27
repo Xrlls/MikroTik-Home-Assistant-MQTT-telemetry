@@ -71,6 +71,19 @@ local policy "read,write,policy,test"
 
 $deploy fname=$fname url=$url interval=$interval policy=$policy
 
+    #--------------------------------------------------------------
+local fname "HassioSensorResourceEntityPublish"
+local policy "read,test"
+
+$deploy fname=$fname policy=$policy
+ 
+   #--------------------------------------------------------------
+local fname "HassioSensorResourceStatePublish"
+local interval "1m"
+local policy "read,write,test"
+
+$deploy fname=$fname interval=$interval policy=$policy
+
 if ([system/package/find name=gps and disabled=no]) do={
     put "GPS found, installing position telemetry..."
     #--------------------------------------------------------------
