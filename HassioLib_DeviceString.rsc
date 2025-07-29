@@ -53,7 +53,10 @@ foreach bridge in=[/interface/bridge/find] do={
         :set cint [/interface/bridge/get $bridge name]; #Look for addresses on the bridge
     } else={ #Look for addresses on default PVid
         :local vlan [/interface/bridge/get $bridge pvid]
-        :set cint [/interface/vlan get [/interface/vlan/find interface=[/interface/bridge/get $bridge name] vlan-id=$vlan] name] 
+        :local vints [/interface/vlan/find interface=[/interface/bridge/get $bridge name] vlan-id=$vlan]
+        :foreach vint in=$vints do={
+            :set cint [/interface/vlan get $vint name]
+        }
     }
     foreach AddressIndex in=[ip/address/find where interface=$cint and disabled=no] do={
         set ipaddress [/ip/address/get $AddressIndex address]
