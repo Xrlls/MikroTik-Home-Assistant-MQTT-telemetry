@@ -32,7 +32,7 @@
         :local topics
         #Migrate topics
         :if $migrate do={
-            :log info "Start migration..."
+            :log debug "Start migration..."
             :foreach entity,params in=($1->"cmps") do={
                 :if (($params->"p")="device_tracker") do={
                 :set ($topics->$entity) ($discoverypath.($params->"p")."/".$dtopic."/config")
@@ -45,13 +45,13 @@
         }
 
         #Publish device
-        :log info "Publish device..."
+        :log debug "Publish device..."
         /iot/mqtt/publish broker="Home Assistant" topic=($discoverypath."device/".$dtopic."/config")\
             message=[:serialize to=json $1]\
             retain=yes
 
         #Migrate complete
-            :log info "Completing migration..."
+            :log debug "Completing migration..."
             :foreach ctopic in=$topics do={
                 :log debug $ctopic
                 /iot/mqtt/publish broker="Home Assistant" topic=$ctopic message="" retain=yes; #Message must be retained or Home Assistant throws a persistant error.
