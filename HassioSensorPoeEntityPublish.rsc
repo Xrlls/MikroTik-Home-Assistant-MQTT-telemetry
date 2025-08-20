@@ -39,7 +39,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 set ($entity->"cmps"->$dname->"stat_cla") "measurement"
                 set ($entity->"cmps"->$dname->"val_tpl") "\
                     {%if value_json.$jsonname is defined%}\
-                        {{value_json.$jsonname}}\
+                        {{value_json.$jsonname/10}}\
                     {%else%}\
                         {{0}\
                     }{%endif%}"
