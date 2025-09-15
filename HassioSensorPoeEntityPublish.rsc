@@ -27,7 +27,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 :local jsonname ("x".[$SearchReplace input=$dname search="-" replace="_"])
                 :set $dname ($dname.$NamePostfix)
                 :set ($entity->"cmps"->$dname->"p") $domainpath
-                set ($entity->"cmps"->$dname->"name") ("$iname"." POE")
+                set ($entity->"cmps"->$dname->"name") ("$iname"." PoE")
                 set ($entity->"cmps"->$dname->"~") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/state$NamePostfix")
                 set ($entity->"cmps"->$dname->"stat_t") "~"
                 set ($entity->"cmps"->$dname->"avty_t") "~"
