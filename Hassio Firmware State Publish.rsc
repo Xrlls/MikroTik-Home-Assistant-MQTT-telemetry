@@ -32,7 +32,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         #Handle routerboard firmware for non CHR
         #-------------------------------------------------------
-        if ([pick [/system/resource/get board-name] 0 3] != "CHR") do={
+        if (!([/system/resource/get board-name ]~"^CHR")) do={
             local data
             #Get routerboard firmware
             set ($data->"installed_version") [[parse "/system/routerboard/get current-firmware"]]
@@ -101,7 +101,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         /interface/ppp-client/
         :foreach i in=[find] do={
-            :local upd [firmware-upgrade $i as-value]
+            :do {:local upd [firmware-upgrade $i as-value]} on-error={:log error "PPP Interface not updateable"; :local upd; :set ($upd->"status") "Failed!"}
             :local inf
             :if (($upd->"status")!="Failed!") do={
                 :do {:set  inf [info $i once as-value]} on-error={}
