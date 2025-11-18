@@ -76,7 +76,8 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
         #-------------------------------------------------------
         /interface/ppp-client/
         :foreach i in=[find] do={
-            :local upd [firmware-upgrade $i as-value]
+            :local upd
+            :do {:set $upd [firmware-upgrade $i as-value]} on-error={:set ($upd->"status") "Failed!"}
             :local inf
             :if (($upd->"status")!="Failed!") do={
                 :do {:set  inf [info $i once as-value]} on-error={}
