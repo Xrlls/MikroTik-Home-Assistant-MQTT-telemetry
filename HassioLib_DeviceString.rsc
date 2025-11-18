@@ -23,8 +23,7 @@ set ($Device->"dev"->"mf") [/system/resource/get platform];   #Manufacturer
 local index 0
 # Get Ethernet MAC addresses
 foreach iface in=[interface/ethernet/find ] do={
-    set ($Device->"dev"->"cns"->$index->0) "mac"
-    set ($Device->"dev"->"cns"->$index->1) [convert transform=lc [/interface/ethernet/get $iface mac-address]]
+    set ($Device->"dev"->"cns"->$index) {"mac";[convert transform=lc [/interface/ethernet/get $iface mac-address]]}
     set $index ($index+1)
 }
 # Get Wi-Fi MAC addresses
@@ -32,16 +31,14 @@ foreach iface in=[interface/ethernet/find ] do={
     :onerror ErrorName in={set iface [[parse "/interface/wireless/ find interface-type!=\"virtual\""]]} do={set iface [:nothing]; log/info message="no wireless"}
     local Action [parse "local a [interface/wireless/get \$1 mac-address];return \$a"]
     foreach ciface in=$iface do={
-        set ($Device->"dev"->"cns"->$index->0) "mac"
-        set ($Device->"dev"->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
+        set ($Device->"dev"->"cns"->$index) {"mac";[convert transform=lc [$Action $ciface]]}
         set $index ($index+1)
     }
 # Get Wi-Fi Wave2 MAC Addresses
     :onerror ErrorName in={set iface [[parse "/interface/wifiwave2/radio/find local"]]} do={set iface [:nothing]; log/info message="no WIFI wave2"}
     local Action [parse "local a [/interface/wifi/radio/get \$1 radio-mac];return \$a"]
     foreach ciface in=$iface do={
-        set ($Device->"dev"->"cns"->$index->0) "mac"
-        set ($Device->"dev"->"cns"->$index->1) [convert transform=lc [$Action $ciface]]
+        set ($Device->"dev"->"cns"->$index) {"mac";[convert transform=lc [$Action $ciface]]}
         set $index ($index+1)
     }
 
