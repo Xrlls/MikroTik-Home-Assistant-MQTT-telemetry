@@ -26,32 +26,34 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             :foreach dname,iname in=$name do={
                 :local jsonname ("x".[$SearchReplace input=$dname search="-" replace="_"])
                 :set $dname ($dname.$NamePostfix)
-                :set ($entity->"cmps"->$dname->"p") $domainpath
-                set ($entity->"cmps"->$dname->"name") ("$iname"." PoE")
-                set ($entity->"cmps"->$dname->"~") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/state$NamePostfix")
-                set ($entity->"cmps"->$dname->"stat_t") "~"
-                set ($entity->"cmps"->$dname->"avty_t") "~"
-                set ($entity->"cmps"->$dname->"uniq_id") (($entity->"dev"->"ids")."_$dname")
-                set ($entity->"cmps"->$dname->"obj_id") ($entity->"cmps"->$dname->"uniq_id")
-                set ($entity->"cmps"->$dname->"sug_dsp_prc") 1
-                set ($entity->"cmps"->$dname->"unit_of_meas") $unit
-                set ($entity->"cmps"->$dname->"dev_cla") "power"
-                set ($entity->"cmps"->$dname->"stat_cla") "measurement"
-                set ($entity->"cmps"->$dname->"val_tpl") "\
+                :set ($entity->"cmps"->$dname) {
+                    "p"= $domainpath
+                    "name"=("$iname"." PoE")
+                    "~"=("$discoverypath$domainpath/".($entity->"dev"->"ids")."/state$NamePostfix")
+                    "stat_t"="~"
+                    "avty_t"="~"
+                    "uniq_id"=(($entity->"dev"->"ids")."_$dname")
+#                    "obj_id"=($entity->"cmps"->$dname->"uniq_id")
+                    "sug_dsp_prc"=1
+                    "unit_of_meas"=$unit
+                    "dev_cla"="power"
+                    "stat_cla"="measurement"
+                    "val_tpl"="\
                     {%if value_json.$jsonname is defined%}\
                         {{value_json.$jsonname/10}}\
                     {%else%}\
                         {{0}\
                     }{%endif%}"
-                set ($entity->"cmps"->$dname->"avty_tpl") "\
+                    "avty_tpl"="\
                     {%if value_json.$jsonname is defined%}\
                         {{'online'}}\
                     {%else%}\
                         {{'offline'}}\
                     {%endif%}"
-                set ($entity->"cmps"->$dname->"exp_aft") 70
+                    "exp_aft"=70}
                 #/iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
                 #    topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name$NamePostfix/config") retain=yes
+            :set ($entity->"cmps"->$dname->"obj_id") ($entity->"cmps"->$dname->"uniq_id")
             }
             :return $entity;#[:serialize to=json $entity]
         }
