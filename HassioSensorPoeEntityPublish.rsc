@@ -33,7 +33,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                     "stat_t"="~"
                     "avty_t"="~"
                     "uniq_id"=(($entity->"dev"->"ids")."_$dname")
-#                    "obj_id"=($entity->"cmps"->$dname->"uniq_id")
+#                    "def_ent_id"=($entity->"cmps"->$dname->"uniq_id")
                     "sug_dsp_prc"=1
                     "unit_of_meas"=$unit
                     "dev_cla"="power"

@@ -27,7 +27,7 @@
                     {{'offline'}}\
                 {%endif%}";
             "uniq_id"=(($entity->"dev"->"ids")."_$dName")
-            "obj_id"=(($entity->"dev"->"ids")."_$dName")
+            "def_ent_id"=(($entity->"dev"->"ids")."_$dName")
         }
         :if ($domainpath="sensor") do={
             :set ($entity->"cmps"->$dName) (($entity->"cmps"->$dName),{

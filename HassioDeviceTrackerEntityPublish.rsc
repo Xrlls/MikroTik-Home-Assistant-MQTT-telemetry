@@ -27,7 +27,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
             :set ($entity->"cmps"->$name->"p") $domainpath
             set ($entity->"cmps"->$name->"name") $name
             set ($entity->"cmps"->$name->"uniq_id") (($entity->"dev"->"ids")."_$name")
-            set ($entity->"cmps"->$name->"obj_id") ($entity->"uniq_id")
+            set ($entity->"cmps"->$name->"def_ent_id") ($entity->"uniq_id")
             set ($entity->"cmps"->$name->"~") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/attributes")
             set ($entity->"cmps"->$name->"json_attr_t") "~"
             set ($entity->"cmps"->$name->"avty_t") "~"
