@@ -53,7 +53,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                     "exp_aft"=70}
                 #/iot/mqtt/publish broker="Home Assistant" message=[:serialize $entity to=json]\
                 #    topic=("$discoverypath$domainpath".($entity->"dev"->"ids")."/$name$NamePostfix/config") retain=yes
-            :set ($entity->"cmps"->$dname->"obj_id") ($entity->"cmps"->$dname->"uniq_id")
+            :set ($entity->"cmps"->$dname->"def_ent_id") ($entity->"cmps"->$dname->"uniq_id")
             }
             :return $entity;#[:serialize to=json $entity]
         }

@@ -32,7 +32,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 set ($entity->"cmps"->$eName->"name") $eName
                 set ($entity->"cmps"->$eName->"stat_t") ("$discoverypath$domainpath/".($entity->"dev"->"ids")."/state")
                 set ($entity->"cmps"->$eName->"uniq_id") (($entity->"dev"->"ids")."_$eName")
-                set ($entity->"cmps"->$eName->"obj_id") ($entity->"cmps"->$eName->"uniq_id")
+                set ($entity->"cmps"->$eName->"def_ent_id") ($entity->"cmps"->$eName->"uniq_id")
                 set ($entity->"cmps"->$eName->"sug_dsp_prc") 1
                 set ($entity->"cmps"->$eName->"unit_of_meas") $unit
                 set ($entity->"cmps"->$eName->"dev_cla") ($devcla->$unit)

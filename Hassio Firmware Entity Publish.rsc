@@ -28,7 +28,7 @@ if ([len [system/package/find name="iot"]]=0) do={ ; # If IOT packages is  not i
                 set ($entity->"cmps"->$k->"name") $k
                 set ($entity->"cmps"->$k->"stat_t") "~/state"
                 set ($entity->"cmps"->$k->"uniq_id") (($entity->"dev"->"ids")."_$k")
-                set ($entity->"cmps"->$k->"obj_id") ($entity->"uniq_id")
+                set ($entity->"cmps"->$k->"def_ent_id") ($entity->"uniq_id")
             }
             :return $entity
 #            :put [:serialize to=json $entity]
