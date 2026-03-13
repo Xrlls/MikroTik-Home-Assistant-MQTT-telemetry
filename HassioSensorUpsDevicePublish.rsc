@@ -42,7 +42,7 @@ foreach i in=[/system/ups/ find] do={
             :set ($pd->"cmps"->$k->"uniq_id") ($pd->"cmps"->$k->"def_ent_id")
             :set ($pd->"cmps"->$k->"stat_t") ($discoverypath."sensor/".($pd->"dev"->"sn")."/state")
         }
-        :put [:serialize to=json $pd]
+#        :put [:serialize to=json $pd]
         /iot/mqtt/publish broker="Home Assistant"\
             topic=($discoverypath."device/".($pd->"dev"->"sn")."/config")\
             message=[:serialize $pd to=json]\
