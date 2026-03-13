@@ -23,8 +23,8 @@
                         {%endif%}"
                 }
                 }
-                :set ($1->"cmps"->$k->"obj_id") ($dtopic."_".($v->"obj_id"))
-                :set ($1->"cmps"->$k->"uniq_id") ($1->"cmps"->$k->"obj_id")
+                :set ($1->"cmps"->$k->"def_ent_id") ($dtopic."_".($v->"def_ent_id"))
+                :set ($1->"cmps"->$k->"uniq_id") ($1->"cmps"->$k->"def_ent_id")
                 :set ($1->"cmps"->$k->"stat_t") "~"
             }
             :put [:serialize $1 to=json]
@@ -87,7 +87,7 @@
         :set ($sensorconfig->"stat_cla") "measurement"
         #X
         :set ($sensorconfig->"name") "Acceleration X"
-        :set ($sensorconfig->"obj_id") "acc_x"
+        :set ($sensorconfig->"def_ent_id") "acc_x"
         :set ($sensorconfig->"val_tpl") "\
             {% set x= int(value_json.data[18:20] + value_json.data[16:18],base=16)%}\
             {% if x>0x7fff%}\
@@ -95,10 +95,10 @@
             {%endif%}\
             {{x*9.82/256}}"
         :set ($sensorconfig->"ic") "mdi:axis-x-arrow"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         #Y
         :set ($sensorconfig->"name") "Acceleration Y"
-        :set ($sensorconfig->"obj_id") "acc_y"
+        :set ($sensorconfig->"def_ent_id") "acc_y"
         :set ($sensorconfig->"val_tpl") "\
             {% set y= int(value_json.data[22:24] + value_json.data[20:22],base=16)%}\
             {% if y>0x7fff%}\
@@ -106,10 +106,10 @@
             {%endif%}\
             {{y*9.82/256}}"
         :set ($sensorconfig->"ic") "mdi:axis-y-arrow"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         #Z
         :set ($sensorconfig->"name") "Acceleration Z"
-        :set ($sensorconfig->"obj_id") "acc_z"
+        :set ($sensorconfig->"def_ent_id") "acc_z"
         :set ($sensorconfig->"val_tpl") "\
             {% set z= int(value_json.data[26:28] + value_json.data[24:26],base=16)%}\
             {% if z>0x7fff%}\
@@ -117,7 +117,7 @@
             {%endif%}\
             {{z*9.82/256}}"
         :set ($sensorconfig->"ic") "mdi:axis-z-arrow"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Thermometer
         if ($2) do=\
@@ -125,7 +125,7 @@
         :local sensorconfig
         :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Temperature"
-        :set ($sensorconfig->"obj_id") "temp"                                                               
+        :set ($sensorconfig->"def_ent_id") "temp"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 1
         :set ($sensorconfig->"unit_of_meas") "\C2\B0\43"
         :set ($sensorconfig->"dev_cla") "temperature"
@@ -136,28 +136,28 @@
                 {% set t=t-0x10000%}\
             {%endif%}\
             {{t/256}}"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Uptime
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Uptime"
-        :set ($sensorconfig->"obj_id") "uptime"                                                               
+        :set ($sensorconfig->"def_ent_id") "uptime"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 1
         :set ($sensorconfig->"unit_of_meas") "min"
         :set ($sensorconfig->"dev_cla") "duration"
         :set ($sensorconfig->"stat_cla") "total_increasing"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") "{{ int(value_json.data[38:40] + value_json.data[36:38] + value_json.data[34:36] + value_json.data[32:34],base=16)/60}}"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #RSSI
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "RSSI"
-        :set ($sensorconfig->"obj_id") "rssi"                                                               
+        :set ($sensorconfig->"def_ent_id") "rssi"                                                               
         :set ($sensorconfig->"sug_dsp_prc") 0
         :set ($sensorconfig->"unit_of_meas") "dB"
         :set ($sensorconfig->"dev_cla") "signal_strength"
@@ -170,14 +170,14 @@
                 {%else%}\
                     offline\
                 {%endif%}"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Timestamp
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Last seen"
-        :set ($sensorconfig->"obj_id") "last_seen"                                                               
+        :set ($sensorconfig->"def_ent_id") "last_seen"                                                               
         :set ($sensorconfig->"dev_cla") "timestamp"
         :set ($sensorconfig->"ent_cat") "diagnostic"
         :set ($sensorconfig->"val_tpl") ("{{ value_json.last_seen | is_defined }}")
@@ -187,20 +187,20 @@
                 {%else%}\
                     offline\
                 {%endif%}"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Battery
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "sensor"
         :set ($sensorconfig->"name") "Battery"
-        :set ($sensorconfig->"obj_id") "battery"
+        :set ($sensorconfig->"def_ent_id") "battery"
         :set ($sensorconfig->"sug_dsp_prc") 0
         :set ($sensorconfig->"unit_of_meas") "%"
         :set ($sensorconfig->"dev_cla") "battery"
         :set ($sensorconfig->"stat_cla") "measurement"
         :set ($sensorconfig->"val_tpl") "{{int(value_json.data[42:44],base=16) }}"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Binary sensors
         #X
@@ -208,7 +208,7 @@
         :local sensorconfig
         :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Impact X"
-        :set ($sensorconfig->"obj_id") "imp_x"
+        :set ($sensorconfig->"def_ent_id") "imp_x"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
             {%if value_json.data is defined%}\
@@ -219,14 +219,14 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-x-arrow"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Y
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Impact Y"
-        :set ($sensorconfig->"obj_id") "imp_y"
+        :set ($sensorconfig->"def_ent_id") "imp_y"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
             {%if value_json.data is defined%}\
@@ -237,14 +237,14 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-y-arrow"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Z
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Impact Z"
-        :set ($sensorconfig->"obj_id") "imp_z"
+        :set ($sensorconfig->"def_ent_id") "imp_z"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
             {%if value_json.data is defined%}\
@@ -255,14 +255,14 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:axis-z-arrow"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Free fall
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Free fall"
-        :set ($sensorconfig->"obj_id") "freefall"
+        :set ($sensorconfig->"def_ent_id") "freefall"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
             {%if value_json.data is defined%}\
@@ -273,14 +273,14 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:arrow-down-bold-box-outline"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Tilt
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Tilt"
-        :set ($sensorconfig->"obj_id") "Tilt"
+        :set ($sensorconfig->"def_ent_id") "Tilt"
         :set ($sensorconfig->"en") false
         :set ($sensorconfig->"val_tpl") "\
             {%if value_json.data is defined%}\
@@ -291,14 +291,14 @@
                 {%endif%}\
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:spirit-level"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Switch
         {
         :local sensorconfig
         :set ($sensorconfig->"p") "binary_sensor"
         :set ($sensorconfig->"name") "Switch"
-        :set ($sensorconfig->"obj_id") "Switch"
+        :set ($sensorconfig->"def_ent_id") "Switch"
         :set ($sensorconfig->"val_tpl") \
             "{%if value_json.data is defined%}\
                 {% if((int(value_json.data[41:42],base=16) | bitwise_and(0x01))|bool)%}\
@@ -309,19 +309,19 @@
             {%endif%}"
         :set ($sensorconfig->"ic") "mdi:magnet-on"
         
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
         #Devicetracker
         {
         :local sensorconfig;# $device
         :set ($sensorconfig->"p") "device_tracker"
         :set ($sensorconfig->"name") "Location"
-        :set ($sensorconfig->"obj_id") "loc"
+        :set ($sensorconfig->"def_ent_id") "loc"
         :local discoverypath "homeassistant/"
         :local dtopic [([:pick ($device->"dev"->"cns"->0->1) -1 2].[:pick ($device->"dev"->"cns"->0->1) 3 5].\
                         [:pick ($device->"dev"->"cns"->0->1) 6 8].[:pick ($device->"dev"->"cns"->0->1) 9 11].\
                         [:pick ($device->"dev"->"cns"->0->1) 12 14].[:pick ($device->"dev"->"cns"->0->1) 15 17])]
-        :set ($sensorconfig->"uniq_id") ($sensorconfig->"obj_id")
+        :set ($sensorconfig->"uniq_id") ($sensorconfig->"def_ent_id")
         :set ($sensorconfig->"~") ($discoverypath."sensor/".$dtopic."/state")
         :set ($sensorconfig->"stat_t") "~"
         :set ($sensorconfig->"val_tpl") "{{value_json.site}}"
@@ -334,7 +334,7 @@
             {%else%}\
                 {}\
             {%endif%}"
-        :set ($device->"cmps"->($sensorconfig->"obj_id")) $sensorconfig
+        :set ($device->"cmps"->($sensorconfig->"def_ent_id")) $sensorconfig
         }
 #    }
     $postdata $device
