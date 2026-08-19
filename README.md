@@ -65,14 +65,12 @@ To reduce the attack surface for the router, these scripts do not subscribe to a
 ## Tested devices
 I have tested it on various MikroTik devices I have available:
 - RB5009UPr+S+
-- wAP ac LTE6 kit aka. wAP R ac
 - hAP ax^2
 - CHR
-- SXTsq Lite2 (no longer tested)
 - L009UiGS-2HaxD-IN
 - KNOT LR8 aka. KNOT R
 - SXT LTE kit aka. SXT R
-- wAP LR2
+- wAP ax
 
 I will happily test on any other devices you might want to gift me :)
 
@@ -80,6 +78,11 @@ I will happily test on any other devices you might want to gift me :)
 These are devices reported as working by others, but I don't own myself:
 - RB450Gx4 reported by [SkeLLLa](https://github.com/SkeLLLa) on April 26<sup>th</sup>, 2025
 - CRS328-24P-4S+ reported by [SkeLLLa](https://github.com/SkeLLLa) on April 26<sup>th</sup>, 2025
+
+### No longer tested
+- wAP LR2
+- SXTsq Lite2
+- wAP ac LTE6 kit aka. wAP R ac (I gave up on 16MB devices with wireless around ROS 7.22 as the IOT package could no longer fit.)
 
 ## Installation
 
